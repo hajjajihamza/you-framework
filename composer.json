@@ -1,0 +1,27 @@
+{
+    "name": "hajjvero/you-framework",
+    "description": "A custom PHP framework monorepo",
+    "license": "MIT",
+    "homepage": "https://github.com/hajjvero/you-framework.git",
+    "authors": [
+        {
+            "name": "Hamza Hajjaji",
+            "email": "hajjvero@gmail.com",
+            "homepage": "https://github.com/hajjvero",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=8.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "YouRoute\\": "you-route/src/",
+            "YouHttpFoundation\\": "you-http-foundation/src/",
+            "YouCli\\": "you-cli/src/",
+            "YouKernel\\": "you-kernel/src/"
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
