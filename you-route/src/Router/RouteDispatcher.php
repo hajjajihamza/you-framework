@@ -43,7 +43,7 @@ readonly class RouteDispatcher
 
         foreach ($routes as $route) {
             // Vérifie la correspondance du chemin
-            $params = $this->matchPath($route->getPath(), trim($url, '/'));
+            $params = $this->matchPath($route->getPath(), $url);
 
             // Si params est un tableau, c'est que ça matche
             if (is_array($params)) {

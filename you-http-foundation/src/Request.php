@@ -90,7 +90,10 @@ class Request
      */
     public function getPath(): string
     {
-        return $_SERVER['PATH_INFO'] ?: "/";;
+        // On enlève le slash final si présent
+        $path = rtrim(parse_url($this->server->get('REQUEST_URI'), PHP_URL_PATH), '/');
+
+        return empty($path) ? '/' : $path; // Si le path est vide, on retourne '/'
     }
 
 

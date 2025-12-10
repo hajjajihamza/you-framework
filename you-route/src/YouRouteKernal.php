@@ -116,5 +116,4 @@ final class YouRouteKernal
 
         return $path;
     }
-    
 }
