@@ -2,10 +2,12 @@
 
 namespace YouHttpFoundation;
 
+use InvalidArgumentException;
+
 /**
  * Response représente une réponse HTTP.
  */
-class Response
+class Response implements ResponseInterface
 {
     /**
      * @var ParameterBag
@@ -31,11 +33,6 @@ class Response
      * @var string
      */
     protected string $statusText;
-
-    /**
-     * @var string
-     */
-    protected string $charset;
 
     /**
      * Codes de statut HTTP standards.
@@ -159,17 +156,17 @@ class Response
      *
      * @return $this
      *
-     * @throws \InvalidArgumentException Si le code de statut n'est pas valide
+     * @throws InvalidArgumentException Si le code de statut n'est pas valide
      */
     public function setStatusCode(int $code, mixed $text = null): static
     {
         $this->statusCode = $code;
         if ($this->isInvalid()) {
-            throw new \InvalidArgumentException(sprintf('Le code de statut HTTP "%s" n\'est pas valide.', $code));
+            throw new InvalidArgumentException(sprintf('Le code de statut HTTP "%s" n\'est pas valide.', $code));
         }
 
         if (null === $text) {
-            $this->statusText = isset(self::$statusTexts[$code]) ? self::$statusTexts[$code] : 'unknown status';
+            $this->statusText = self::$statusTexts[$code] ?? 'unknown status';
         } else {
             $this->statusText = $text;
         }
@@ -196,7 +193,7 @@ class Response
     public function setProtocolVersion(string $version): static
     {
         if (!\in_array($version, ['1.0', '1.1', '2.0'])) {
-            throw new \InvalidArgumentException(sprintf('La version du protocole HTTP "%s" n\'est pas valide.', $version));
+            throw new InvalidArgumentException(sprintf('La version du protocole HTTP "%s" n\'est pas valide.', $version));
         }
 
         $this->version = $version;
