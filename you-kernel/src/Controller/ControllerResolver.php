@@ -89,9 +89,9 @@ class ControllerResolver
             $paramType = $param->getType();
 
             // Injection les paramètres typés et non built-in (string, int, bool, etc.)
-            if ($paramType && !$paramType->isBuiltin()) {
+            if ($paramType instanceof \ReflectionNamedType && !$paramType->isBuiltin()) {
                 // Injection de la Request si typée
-                if ($paramType instanceof \ReflectionNamedType && $paramType->getName() === Request::class) {
+                if ($paramType->getName() === Request::class) {
                     $args[] = $request;
                     continue;
                 }
