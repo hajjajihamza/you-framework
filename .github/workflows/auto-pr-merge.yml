@@ -62,9 +62,9 @@ jobs:
         run: |
           URL=$(gh pr create \
             --base dev \
-            --head "${{ steps.info.outputs.branch }}" \
-            --title "${{ steps.info.outputs.title }}" \
-            --body "Auto-generated PR from branch **${{ steps.info.outputs.branch }}**")
+            --head "${{ steps.extract_branch.outputs.branch_name }}" \
+            --title "${{ steps.extract_branch.outputs.pr_title }}" \
+            --body "Auto-generated PR from ${{ steps.extract_branch.outputs.branch_name }}")
 
           NUMBER=$(echo "$URL" | grep -oP '\d+$')
           echo "number=$NUMBER" >> $GITHUB_OUTPUT
