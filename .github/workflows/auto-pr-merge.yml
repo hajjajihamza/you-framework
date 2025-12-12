@@ -6,84 +6,82 @@ on:
       - 'features/**'
       - 'fix/**'
       - 'refactor/**'
+      - 'docs/**'
+      - 'chore/**'
       - '!dev'
 
 jobs:
-  create-pr-and-merge:
+  auto-pr-merge:
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
-      - name: Extract branch name
-        id: extract_branch
+
+      - name: Extract branch info
+        id: info
         run: |
-          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
-          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
-          
-          # Extract a clean title from branch name
-          TITLE=$(echo "$BRANCH_NAME" | sed 's/\//-/g' | sed 's/-/ /g' | awk '{for(i=1;i<=NF;i++)sub(/./,toupper(substr($i,1,1)),$i)}1')
-          echo "pr_title=$TITLE" >> $GITHUB_OUTPUT
-      
+          BRANCH="${GITHUB_REF#refs/heads/}"
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+
+          # Convert branch name to human title
+          TITLE=$(echo "$BRANCH" \
+            | sed 's/\// /g' \
+            | sed 's/-/ /g' \
+            | awk '{for (i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) substr($i,2)}1')
+          echo "title=$TITLE" >> $GITHUB_OUTPUT
+
       - name: Check if PR already exists
-        id: check_pr
+        id: check
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.PAT_TOKEN != '' && secrets.PAT_TOKEN || github.token }}
         run: |
-          PR_NUMBER=$(gh pr list --head "${{ steps.extract_branch.outputs.branch_name }}" --base dev --json number --jq '.[0].number')
-          if [ -z "$PR_NUMBER" ]; then
-            echo "pr_exists=false" >> $GITHUB_OUTPUT
-            echo "pr_number=" >> $GITHUB_OUTPUT
-          else
-            echo "pr_exists=true" >> $GITHUB_OUTPUT
-            echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
-          fi
-      
-      - name: Create Pull Request
-        if: steps.check_pr.outputs.pr_exists == 'false'
-        id: create_pr
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          PR_URL=$(gh pr create \
+          PR=$(gh pr list \
+            --head "${{ steps.info.outputs.branch }}" \
             --base dev \
-            --head "${{ steps.extract_branch.outputs.branch_name }}" \
-            --title "${{ steps.extract_branch.outputs.pr_title }}" \
-            --body "Auto-generated PR from ${{ steps.extract_branch.outputs.branch_name }}" \
-            --assignee "@me")
-          
-          PR_NUMBER=$(echo "$PR_URL" | grep -oP '\d+$')
-          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
-          echo "Created PR #$PR_NUMBER"
-      
-      - name: Set PR number for merge
-        id: set_pr_number
-        run: |
-          if [ "${{ steps.check_pr.outputs.pr_exists }}" == "true" ]; then
-            echo "pr_number=${{ steps.check_pr.outputs.pr_number }}" >> $GITHUB_OUTPUT
+            --json number \
+            --jq '.[0].number')
+
+          if [ -z "$PR" ]; then
+            echo "exists=false" >> $GITHUB_OUTPUT
           else
-            echo "pr_number=${{ steps.create_pr.outputs.pr_number }}" >> $GITHUB_OUTPUT
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "number=$PR" >> $GITHUB_OUTPUT
           fi
-      
-      - name: Wait for checks to complete
+
+      - name: Create PR if missing
+        id: create
+        if: steps.check.outputs.exists == 'false'
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.PAT_TOKEN != '' && secrets.PAT_TOKEN || github.token }}
         run: |
-          echo "Waiting for checks to complete..."
-          sleep 10
-      
-      - name: Merge Pull Request
+          URL=$(gh pr create \
+            --base dev \
+            --head "${{ steps.info.outputs.branch }}" \
+            --title "${{ steps.info.outputs.title }}" \
+            --body "Auto-generated PR from branch **${{ steps.info.outputs.branch }}**")
+
+          NUMBER=$(echo "$URL" | grep -oP '\d+$')
+          echo "number=$NUMBER" >> $GITHUB_OUTPUT
+          echo "Created PR #$NUMBER"
+
+      - name: Select PR number
+        id: pr
+        run: |
+          if [ "${{ steps.check.outputs.exists }}" = "true" ]; then
+            echo "number=${{ steps.check.outputs.number }}" >> $GITHUB_OUTPUT
+          else
+            echo "number=${{ steps.create.outputs.number }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Enable auto-merge
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.PAT_TOKEN != '' && secrets.PAT_TOKEN || github.token }}
         run: |
-          gh pr merge ${{ steps.set_pr_number.outputs.pr_number }} \
-            --auto \
-            --merge \
-          
-          echo "PR #${{ steps.set_pr_number.outputs.pr_number }} set to auto-merge"
+          gh pr merge ${{ steps.pr.outputs.number }} --auto --merge
+          echo "Auto-merge enabled for PR #${{ steps.pr.outputs.number }}"
