@@ -18,10 +18,13 @@
         "psr-4": {
             "YouRoute\\": "you-route/src/",
             "YouHttpFoundation\\": "you-http-foundation/src/",
-            "YouCli\\": "you-cli/src/",
+            "YouConsole\\": "you-console/src/",
             "YouKernel\\": "you-kernel/src/"
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "require-dev": {
+        "symfony/var-dumper": "^8.0"
+    }
 }
