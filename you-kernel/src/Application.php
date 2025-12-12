@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace YouKernel;
 
 use ReflectionException;
+use YouConsole\Helper\ListCommand;
+use YouConsole\YouConsoleKernel;
 use YouHttpFoundation\Request;
 use YouKernel\Container\Container;
 use YouKernel\Controller\ControllerResolver;
@@ -33,8 +35,14 @@ class Application
     /** @var string|null */
     private ?string $controllerPath = null;
 
+    /** @var string|null */
+    private ?string $commandPath = null;
+
     /** @var bool */
-    private bool $booted = false;
+    private bool $httpBooted = false;
+
+    /** @var bool */
+    private bool $consoleBooted = false;
 
     /**
      * @param string|null $projectDir La racine du projet. Si null, tente de la deviner.
@@ -59,6 +67,8 @@ class Application
 
         // 2. Initialisation du container
         $this->container = new Container();
+        $this->container->set('project_dir', $this->projectDir);
+        $this->container->set(Container::class, $this->container);
     }
 
     /**
@@ -70,6 +80,17 @@ class Application
     public function withControllerPath(string $path): self
     {
         $this->controllerPath = $path;
+        return $this;
+    }
+
+    /**
+     * Permet de définir un chemin personnalisé pour les commandes.
+     *
+     * @param string $path
+     * @return self
+     */
+    public function withCommandPath(string $path) : self {
+        $this->commandPath = $path;
         return $this;
     }
 
@@ -88,9 +109,9 @@ class Application
      *
      * @throws ReflectionException
      */
-    public function boot(): self
+    public function bootHttp(): self
     {
-        if ($this->booted) {
+        if ($this->httpBooted) {
             return $this;
         }
 
@@ -101,8 +122,6 @@ class Application
 
         // Enregistrement des services cœurs
         $this->container->set(YouRouteKernal::class, $router);
-        $this->container->set(Container::class, $this->container);
-        $this->container->set('project_dir', $this->projectDir);
 
         // Initialisation du résolveur avec le conteneur
         $resolver = new ControllerResolver($this->container);
@@ -110,9 +129,34 @@ class Application
         // Initialisation du Kernel
         $this->kernel = new HttpKernel($router, $resolver);
 
-        $this->booted = true;
+        $this->httpBooted = true;
 
         return $this;
+    }
+
+    /**
+     * Démarre le kernel console et initialise les composants.
+     *
+     */
+    public function bootConsole(): YouConsoleKernel
+    {
+        // Détermination du chemin des commandes ou fallback sur src/Command
+        $commandsPath = $this->commandPath ?? ($this->projectDir . '/src/Command');
+
+        // Initialisation du Kernel Console
+        $consoleKernal = new YouConsoleKernel($this->container)
+            ->setCommandsDirectory($commandsPath)
+        ;
+
+        // Enregistrement des services cœurs
+        $this->container->set(YouConsoleKernel::class, $consoleKernal);
+
+        // Enregistrement de la commande ListCommand
+        $consoleKernal->registerCommand(new ListCommand());
+
+        $this->consoleBooted = true;
+
+        return $consoleKernal;
     }
 
     /**
@@ -121,8 +165,8 @@ class Application
      */
     public function runHttp(): void
     {
-        if (!$this->booted) {
-            $this->boot();
+        if (!$this->httpBooted) {
+            $this->bootHttp();
         }
 
         // 1. Création de la requête depuis les globales
@@ -133,5 +177,13 @@ class Application
 
         // 3. Envoi de la réponse
         $response->send();
+    }
+
+    public function runConsole(): void
+    {
+        global $argv;
+        if (!$this->consoleBooted) {
+            $this->bootConsole()->run($argv);
+        }
     }
 }
