@@ -43,7 +43,7 @@ class OutputStyle
      *
      * @var array<string, array{fg: string, bg?: string, bold?: bool}>
      */
-    private const STYLES = [
+    private const array STYLES = [
         'info' => ['fg' => self::COLOR_CYAN],
         'error' => ['fg' => self::COLOR_WHITE, 'bg' => self::BG_RED, 'bold' => true],
         'comment' => ['fg' => self::COLOR_YELLOW],

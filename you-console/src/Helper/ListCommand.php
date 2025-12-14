@@ -81,7 +81,7 @@ class ListCommand extends AbstractCommand
 
         $output->writeln();
         $output->writeln('<comment>Usage :</comment>');
-        $output->writeln('  bin/console <commande> [arguments] [options]');
+        $output->writeln('  you <commande> [arguments] [options]');
         $output->writeln();
 
         return 0;

@@ -183,7 +183,7 @@ class Application
     {
         global $argv;
         if (!$this->consoleBooted) {
-            $this->bootConsole()->run($argv);
+            exit($this->bootConsole()->run($argv)); // Exit code
         }
     }
 }

@@ -115,21 +115,11 @@ class Output
         ];
 
         $replacements = [
-            function ($matches) {
-                return OutputStyle::apply('info', $matches[1]);
-            },
-            function ($matches) {
-                return OutputStyle::apply('error', $matches[1]);
-            },
-            function ($matches) {
-                return OutputStyle::apply('comment', $matches[1]);
-            },
-            function ($matches) {
-                return OutputStyle::apply('question', $matches[1]);
-            },
-            function ($matches) {
-                return OutputStyle::apply('success', $matches[1]);
-            },
+            static fn($matches) => OutputStyle::apply('info', $matches[1]),
+            static fn($matches) => OutputStyle::apply('error', $matches[1]),
+            static fn($matches) => OutputStyle::apply('comment', $matches[1]),
+            static fn($matches) => OutputStyle::apply('question', $matches[1]),
+            static fn($matches) => OutputStyle::apply('success', $matches[1]),
         ];
 
         foreach ($patterns as $index => $pattern) {

@@ -74,11 +74,12 @@ class YouConsoleKernel
     /**
      * Enregistre manuellement une commande.
      *
-     * @param AbstractCommand $command Commande à enregistrer
+     * @param AbstractCommand ...$commands Commandes à enregistrer
+     * @return YouConsoleKernel
      */
-    public function registerCommand(AbstractCommand $command): static
+    public function registerCommand(AbstractCommand ...$commands): static
     {
-        $this->commandCollection->add($command);
+        array_map(static fn(AbstractCommand $command) => $this->commandCollection->add($command), $commands);
 
         return $this;
     }
@@ -91,9 +92,7 @@ class YouConsoleKernel
         $discovery = new CommandDiscovery($this->container);
         $discoveredCommands = $discovery->discover($this->commandsDirectory);
 
-        foreach ($discoveredCommands as $command) {
-            $this->registerCommand($command);
-        }
+        $this->registerCommand(...$discoveredCommands);
     }
 
     /**
