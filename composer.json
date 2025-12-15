@@ -12,15 +12,20 @@
         }
     ],
     "require": {
-        "php": ">=8.4"
+        "php": ">=8.4",
+        "vlucas/phpdotenv": "^5.6"
     },
     "autoload": {
         "psr-4": {
             "YouRoute\\": "you-route/src/",
             "YouHttpFoundation\\": "you-http-foundation/src/",
             "YouConsole\\": "you-console/src/",
-            "YouKernel\\": "you-kernel/src/"
-        }
+            "YouKernel\\": "you-kernel/src/",
+            "YouConfig\\": "you-config/src/"
+        },
+        "files": [
+            "helper/functions.php"
+        ]
     },
     "minimum-stability": "stable",
     "prefer-stable": true,

@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace YouKernel;
 
+use Dotenv\Dotenv;
 use ReflectionException;
+use RuntimeException;
+use YouConfig\Config;
 use YouConsole\Helper\ListCommand;
 use YouConsole\YouConsoleKernel;
 use YouHttpFoundation\Request;
@@ -29,14 +32,14 @@ class Application
     /** @var Container */
     private Container $container;
 
+    /** @var Config */
+    private Config $config;
+
     /** @var string */
     private string $projectDir;
 
-    /** @var string|null */
-    private ?string $controllerPath = null;
-
-    /** @var string|null */
-    private ?string $commandPath = null;
+    /** @var string */
+    private string $configPath;
 
     /** @var bool */
     private bool $httpBooted = false;
@@ -48,7 +51,7 @@ class Application
      * @param string|null $projectDir La racine du projet. Si null, tente de la deviner.
      * @throws ReflectionException
      */
-    public function __construct(?string $projectDir = null)
+    public function __construct(?string $projectDir = null, string $configDir = 'config')
     {
         // 1. Détermination de la racine du projet
         if ($projectDir === null) {
@@ -64,34 +67,23 @@ class Application
         }
 
         $this->projectDir = $projectDir;
+        $this->configPath = $this->projectDir . $configDir;
+
+        if (!is_dir($this->configPath)) {
+            throw new RuntimeException('Le dossier "config" n\'existe pas. Veuillez le créer.');
+        }
+
 
         // 2. Initialisation du container
         $this->container = new Container();
         $this->container->set('project_dir', $this->projectDir);
         $this->container->set(Container::class, $this->container);
-    }
+        $this->config = new Config($this->configPath);
 
-    /**
-     * Permet de définir un chemin personnalisé pour les contrôleurs.
-     *
-     * @param string $path
-     * @return self
-     */
-    public function withControllerPath(string $path): self
-    {
-        $this->controllerPath = $path;
-        return $this;
-    }
+        $this->container->set(Config::class, $this->config);
 
-    /**
-     * Permet de définir un chemin personnalisé pour les commandes.
-     *
-     * @param string $path
-     * @return self
-     */
-    public function withCommandPath(string $path) : self {
-        $this->commandPath = $path;
-        return $this;
+        $dotenv = Dotenv::createImmutable($this->projectDir);
+        $dotenv->load();
     }
 
     /**
@@ -115,10 +107,7 @@ class Application
             return $this;
         }
 
-        // Détermination du chemin des contrôleurs ou fallback sur src/Controller
-        $controllersPath = $this->controllerPath ?? ($this->projectDir . '/src/Controller');
-
-        $router = new YouRouteKernal($controllersPath);
+        $router = new YouRouteKernal($this->config->get('app.routes.resource',  '/src/Controller'));
 
         // Enregistrement des services cœurs
         $this->container->set(YouRouteKernal::class, $router);
@@ -145,8 +134,7 @@ class Application
 
         // Initialisation du Kernel Console
         $consoleKernal = new YouConsoleKernel($this->container)
-            ->setCommandsDirectory($commandsPath)
-        ;
+            ->setCommandsDirectory($this->config->get('app.commands.resource',  '/src/Command'));
 
         // Enregistrement des services cœurs
         $this->container->set(YouConsoleKernel::class, $consoleKernal);
