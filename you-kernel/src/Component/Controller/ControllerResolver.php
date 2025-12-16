@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace YouKernel\Controller;
+namespace YouKernel\Component\Controller;
 
 use ReflectionException;
 use ReflectionMethod;
 use RuntimeException;
 use YouHttpFoundation\Request;
-use YouKernel\Container\Container;
+use YouKernel\Component\Container\Container;
 use YouRoute\Attribute\Route;
 
 /**

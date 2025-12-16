@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace YouKernel\Container;
+namespace YouKernel\Component\Container;
 
 use ReflectionClass;
 use ReflectionException;

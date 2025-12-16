@@ -7,7 +7,7 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use ReflectionClass;
 use SplFileInfo;
-use YouKernel\Container\Container;
+use YouKernel\Component\Container\Container;
 
 /**
  * Classe responsable de la découverte automatique des commandes.

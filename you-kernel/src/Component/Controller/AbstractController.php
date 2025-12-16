@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace YouKernel\Controller;
+namespace YouKernel\Component\Controller;
 
 use YouHttpFoundation\Response;
-use YouKernel\Container\Container;
+use YouKernel\Component\Container\Container;
 use YouRoute\YouRouteKernal;
 
 /**

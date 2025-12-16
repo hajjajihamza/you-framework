@@ -1,177 +1,101 @@
 <?php
 
-declare(strict_types=1);
-
 namespace YouKernel;
 
-use Dotenv\Dotenv;
-use ReflectionException;
-use RuntimeException;
-use YouConfig\Config;
-use YouConsole\Helper\ListCommand;
+use JetBrains\PhpStorm\NoReturn;
+use YouKernel\Bootstrap\{
+    ProjectResolver,
+    EnvironmentLoader,
+    ContainerBootstrapper,
+    HttpBootstrapper,
+    ConsoleBootstrapper
+};
+use YouKernel\Runner\{HttpRunner, ConsoleRunner};
 use YouConsole\YouConsoleKernel;
-use YouHttpFoundation\Request;
-use YouKernel\Container\Container;
-use YouKernel\Controller\ControllerResolver;
-use YouKernel\Http\HttpKernel;
-use YouRoute\YouRouteKernal;
+use YouKernel\Component\Container\Container;
+use YouKernel\Component\Http\HttpKernel;
 
 /**
- * Class Application
+ * Classe Application
  *
- * Point d'entrée principal du framework.
- * Initialise les composants et lance l'exécution de la requête.
+ * Point d'entrée principal du framework you-framework.
+ * Cette classe agit comme une façade orchestrant
+ * l'initialisation du noyau (Kernel) et le lancement
+ * des contextes HTTP et Console.
  *
- * @package YouKernel
+ * @author  Hamza Hajjaji <https://github.com/hajjvero>
  */
-class Application
+final class Application
 {
-    /** @var HttpKernel|null */
-    private ?HttpKernel $kernel = null;
-
-    /** @var Container */
+    /**
+     * Conteneur de dépendances du framework.
+     *
+     * @var mixed
+     */
     private Container $container;
 
-    /** @var Config */
-    private Config $config;
-
-    /** @var string */
-    private string $projectDir;
-
-    /** @var string */
-    private string $configPath;
-
-    /** @var bool */
-    private bool $httpBooted = false;
-
-    /** @var bool */
-    private bool $consoleBooted = false;
+    /**
+     * Kernel HTTP.
+     *
+     * @var mixed|null
+     */
+    private HttpKernel $httpKernel;
 
     /**
-     * @param string|null $projectDir La racine du projet. Si null, tente de la deviner.
-     * @throws ReflectionException
+     * Kernel Console.
+     *
+     * @var mixed|null
+     */
+    private YouConsoleKernel $consoleKernel;
+
+    /**
+     * Constructeur de l'application.
+     *
+     * @param string|null $projectDir Répertoire du projet
+     * @param string      $configDir  Répertoire de configuration
      */
     public function __construct(?string $projectDir = null, string $configDir = 'config')
     {
-        // 1. Détermination de la racine du projet
-        if ($projectDir === null) {
-            // Suppose que le point d'entrée est public/index.php
-            // On remonte de 2 niveaux : public/index.php -> public -> root
-            $scriptPath = $_SERVER['SCRIPT_FILENAME'] ?? null;
-            if ($scriptPath) {
-                $projectDir = dirname($scriptPath, 2);
-            } else {
-                // Fallback ou environnement CLI
-                $projectDir = getcwd();
-            }
-        }
+        // Récupération du répertoire du projet
+        $resolver = new ProjectResolver();
+        $projectDir = $resolver->resolve($projectDir);
 
-        $this->projectDir = $projectDir;
-        $this->configPath = $this->projectDir . $configDir;
+        // Chargement de l'environnement
+        new EnvironmentLoader()->load($projectDir);
 
-        if (!is_dir($this->configPath)) {
-            throw new RuntimeException('Le dossier "config" n\'existe pas. Veuillez le créer.');
-        }
-
-
-        // 2. Initialisation du container
-        $this->container = new Container();
-        $this->container->set('project_dir', $this->projectDir);
-        $this->container->set(Container::class, $this->container);
-        $this->config = new Config($this->configPath);
-
-        $this->container->set(Config::class, $this->config);
-
-        $dotenv = Dotenv::createImmutable($this->projectDir);
-        $dotenv->load();
+        // Initialisation du conteneur
+        $this->container = new ContainerBootstrapper()->boot($projectDir, sprintf('%s/%s', $projectDir, $configDir));
     }
 
     /**
-     * Récupère le conteneur de services pour une configuration avancée.
+     * Lance l'application en mode HTTP.
      *
-     * @return Container
+     * @return void
      */
-    public function getContainer(): Container
-    {
-        return $this->container;
-    }
-
-    /**
-     * Démarre le kernel et initialise les composants.
-     *
-     * @throws ReflectionException
-     */
-    public function bootHttp(): self
-    {
-        if ($this->httpBooted) {
-            return $this;
-        }
-
-        $router = new YouRouteKernal($this->config->get('app.routes.resource',  '/src/Controller'));
-
-        // Enregistrement des services cœurs
-        $this->container->set(YouRouteKernal::class, $router);
-
-        // Initialisation du résolveur avec le conteneur
-        $resolver = new ControllerResolver($this->container);
-
-        // Initialisation du Kernel
-        $this->kernel = new HttpKernel($router, $resolver);
-
-        $this->httpBooted = true;
-
-        return $this;
-    }
-
-    /**
-     * Démarre le kernel console et initialise les composants.
-     *
-     */
-    public function bootConsole(): YouConsoleKernel
-    {
-        // Détermination du chemin des commandes ou fallback sur src/Command
-        $commandsPath = $this->commandPath ?? ($this->projectDir . '/src/Command');
-
-        // Initialisation du Kernel Console
-        $consoleKernal = new YouConsoleKernel($this->container)
-            ->setCommandsDirectory($this->config->get('app.commands.resource',  '/src/Command'));
-
-        // Enregistrement des services cœurs
-        $this->container->set(YouConsoleKernel::class, $consoleKernal);
-
-        // Enregistrement de la commande ListCommand
-        $consoleKernal->registerCommand(new ListCommand());
-
-        $this->consoleBooted = true;
-
-        return $consoleKernal;
-    }
-
-    /**
-     * Démarre l'application.
-     * Crée la requête, la traite et envoie la réponse.
-     */
+    #[NoReturn]
     public function runHttp(): void
     {
-        if (!$this->httpBooted) {
-            $this->bootHttp();
-        }
+        // Initialisation du Kernel HTTP
+        $this->httpKernel ??= new HttpBootstrapper()->boot($this->container);
 
-        // 1. Création de la requête depuis les globales
-        $request = Request::createFromGlobals();
-
-        // 2. Traitement par le Kernel
-        $response = $this->kernel->handle($request);
-
-        // 3. Envoi de la réponse
-        $response->send();
+        // Lancement du Kernel
+        new HttpRunner()->run($this->httpKernel);
     }
 
-    public function runConsole(): void
+    /**
+     * Lance l'application en mode Console.
+     *
+     * @param array $argv Arguments CLI
+     *
+     * @return void
+     */
+    #[NoReturn]
+    public function runConsole(array $argv): void
     {
-        global $argv;
-        if (!$this->consoleBooted) {
-            exit($this->bootConsole()->run($argv)); // Exit code
-        }
+        // Initialisation du Kernel Console
+        $this->consoleKernel ??= new ConsoleBootstrapper()->boot($this->container);
+
+        // Lancement du Kernel
+        new ConsoleRunner()->run($this->consoleKernel, $argv);
     }
 }

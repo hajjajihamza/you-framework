@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace YouKernel\Http;
+namespace YouKernel\Component\Http;
 
 use JsonException;
 use Throwable;
 use YouHttpFoundation\Request;
 use YouHttpFoundation\Response;
-use YouKernel\Controller\ControllerResolver;
+use YouKernel\Component\Controller\ControllerResolver;
 use YouRoute\YouRouteKernal;
 
 /**

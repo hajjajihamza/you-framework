@@ -3,12 +3,12 @@
 namespace YouConsole;
 
 use YouConsole\Command\AbstractCommand;
+use YouConsole\Command\CommandCollection;
+use YouConsole\Command\CommandDiscovery;
 use YouConsole\Helper\ListCommand;
 use YouConsole\Input\Input;
 use YouConsole\Output\Output;
-use YouConsole\Command\CommandCollection;
-use YouConsole\Command\CommandDiscovery;
-use YouKernel\Container\Container;
+use YouKernel\Component\Container\Container;
 
 class YouConsoleKernel
 {
