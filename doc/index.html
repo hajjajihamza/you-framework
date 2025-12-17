@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouFramework - Documentation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 60px;
+            background-color: #f8f9fa;
+        }
+
+        .hero {
+            background: white;
+            padding: 4rem 2rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .card {
+            height: 100%;
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #0d6efd;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">YouFramework</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="you-route.html">YouRoute</a></li>
+                    <li class="nav-item"><a class="nav-link" href="you-http-foundation.html">YouHttpFoundation</a></li>
+                    <li class="nav-item"><a class="nav-link" href="you-console.html">YouConsole</a></li>
+                    <li class="nav-item"><a class="nav-link" href="you-config.html">YouConfig</a></li>
+                    <li class="nav-item"><a class="nav-link" href="you-kernel.html">YouKernel</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="hero text-center">
+        <h1 class="display-4">Bienvenue sur YouFramework</h1>
+        <p class="lead">Un framework PHP moderne, léger et modulaire pour construire des applications robustes.</p>
+        <p>Explorez la documentation de nos composants ci-dessous.</p>
+    </div>
+
+    <div class="container mb-5">
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="card-icon">🚀</div>
+                        <h5 class="card-title">YouRoute</h5>
+                        <p class="card-text">Routing puissant basé sur les attributs PHP 8. Gestion simple des URLs et
+                            des paramètres.</p>
+                        <a href="you-route.html" class="btn btn-outline-primary stretched-link">Voir la doc</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="card-icon">🌐</div>
+                        <h5 class="card-title">YouHttpFoundation</h5>
+                        <p class="card-text">Abstraction orientée objet pour les requêtes et réponses HTTP. Une
+                            alternative moderne aux superglobales.</p>
+                        <a href="you-http-foundation.html" class="btn btn-outline-primary stretched-link">Voir la
+                            doc</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="card-icon">💻</div>
+                        <h5 class="card-title">YouConsole</h5>
+                        <p class="card-text">Créez des outils en ligne de commande (CLI) élégants et interactifs avec
+                            facilité.</p>
+                        <a href="you-console.html" class="btn btn-outline-primary stretched-link">Voir la doc</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="card-icon">⚙️</div>
+                        <h5 class="card-title">YouConfig</h5>
+                        <p class="card-text">Gestionnaire de configuration flexible supportant la notation par points et
+                            les fichiers PHP.</p>
+                        <a href="you-config.html" class="btn btn-outline-primary stretched-link">Voir la doc</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="card-icon">🧠</div>
+                        <h5 class="card-title">YouKernel</h5>
+                        <p class="card-text">Le cœur du framework. Injection de dépendances, bootstrap et cycle de vie
+                            de l'application.</p>
+                        <a href="you-kernel.html" class="btn btn-outline-primary stretched-link">Voir la doc</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <footer class="py-3 my-4">
+        <p class="text-center text-muted">&copy; 2024 YouFramework</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

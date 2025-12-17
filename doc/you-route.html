@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouRoute - Documentation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <style>
+        body {
+            padding-top: 60px;
+        }
+
+        h2 {
+            margin-top: 2rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.5rem;
+        }
+
+        h3 {
+            margin-top: 1.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">YouFramework</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link active" href="you-route.html">YouRoute</a></li>
+                    <li class="nav-item"><a class="nav-link" href="you-http-foundation.html">YouHttpFoundation</a></li>
+                    <li class="nav-item"><a class="nav-link" href="you-console.html">YouConsole</a></li>
+                    <li class="nav-item"><a class="nav-link" href="you-config.html">YouConfig</a></li>
+                    <li class="nav-item"><a class="nav-link" href="you-kernel.html">YouKernel</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h1 class="mb-4">Documentation de la Bibliothèque YouRoute</h1>
+
+        <p class="lead"><strong>YouRoute</strong> est un composant de routing léger et performant pour PHP, basé sur les
+            attributs. Il permet de mapper des URLs à des méthodes de contrôleurs de manière simple et intuitive.</p>
+
+        <h2>Fonctionnalités Principales</h2>
+        <ul>
+            <li><strong>Définition de routes via Attributs</strong> : Utilisez <code>#[Route]</code> directement sur vos
+                classes et méthodes.</li>
+            <li><strong>Support des méthodes HTTP</strong> : GET, POST, PUT, DELETE, etc.</li>
+            <li><strong>Paramètres dynamiques</strong> : Capture de segments d'URL (ex: <code>/user/{id}</code>).</li>
+            <li><strong>Préfixes de groupe</strong> : Définition de préfixes de route au niveau de la classe contrôleur.
+            </li>
+            <li><strong>Génération d'URLs</strong> : Construction facile de liens vers vos routes nommées.</li>
+            <li><strong>Scan automatique</strong> : Découverte automatique des contrôleurs dans un répertoire donné.
+            </li>
+        </ul>
+
+        <h2>Installation</h2>
+        <p>Assurez-vous que votre projet utilise PHP 8.1 ou supérieur.</p>
+
+        <h2>Initialisation</h2>
+        <p>Le point d'entrée principal est la classe <code>YouRoute\YouRouteKernal</code>. Vous devez l'instancier en
+            lui fournissant le chemin absolu vers le répertoire contenant vos contrôleurs.</p>
+
+        <pre><code class="language-php">use YouRoute\YouRouteKernal;
+
+// Définir le chemin vers vos contrôleurs
+$controllersPath = __DIR__ . '/src/Controller';
+
+// Initialiser le kernel de routage
+$youRoute = new YouRouteKernal($controllersPath);
+</code></pre>
+
+        <h2>Définir des Routes</h2>
+        <h3>L'Attribut <code>#[Route]</code></h3>
+        <p>L'attribut <code>YouRoute\Attribute\Route</code> est utilisé pour déclarer une route. Il accepte trois
+            arguments :</p>
+        <ol>
+            <li><code>path</code> (string) : Le chemin de l'URL (obligatoire). Peut contenir des paramètres entre
+                accolades <code>{}</code>.</li>
+            <li><code>name</code> (string) : Un nom unique pour la route (optionnel, mais recommandé pour la génération
+                d'URL).</li>
+            <li><code>methods</code> (string|array) : La méthode HTTP ou la liste des méthodes autorisées (défaut :
+                "GET").</li>
+        </ol>
+
+        <h3>Exemple de Contrôleur</h3>
+        <p>Les contrôleurs doivent être des classes instanciables et leurs méthodes d'action doivent être
+            <strong>publiques</strong> et retourner une instance de <code>YouHttpFoundation\ResponseInterface</code>.
+        </p>
+
+        <pre><code class="language-php">&lt;?php
+
+namespace App\Controller;
+
+use YouRoute\Attribute\Route;
+use YouHttpFoundation\Response;
+use YouHttpFoundation\ResponseInterface;
+
+class HomeController
+{
+    #[Route('/', name: 'home')]
+    public function index(): ResponseInterface
+    {
+        return new Response('Bienvenue sur la page d\'accueil !');
+    }
+
+    // Route avec paramètre et méthodes multiples
+    #[Route('/user/{id}', name: 'user_show', methods: ['GET'])]
+    public function show(int $id): ResponseInterface
+    {
+        return new Response("Affichage de l'utilisateur numéro : $id");
+    }
+}
+</code></pre>
+
+        <h3>Préfixer les Routes (Groupes)</h3>
+        <p>Vous pouvez placer l'attribut <code>#[Route]</code> sur la <strong>classe</strong> elle-même pour définir un
+            préfixe commun à toutes les routes de cette classe.</p>
+
+        <pre><code class="language-php">#[Route('/admin', name: 'admin.')]
+class AdminController
+{
+    // L'URL sera /admin/dashboard et le nom 'admin.dashboard'
+    #[Route('/dashboard', name: 'dashboard')]
+    public function dashboard(): ResponseInterface
+    {
+        return new Response('Tableau de bord Admin');
+    }
+}
+</code></pre>
+
+        <h2>Dispatcher la Requête</h2>
+        <p>Une fois le kernel initialisé, vous pouvez dispatcher la requête courante pour trouver la route
+            correspondante.</p>
+
+        <pre><code class="language-php">// Récupérer la méthode et l'URI de la requête (par exemple depuis $_SERVER)
+$method = $_SERVER['REQUEST_METHOD'];
+$uri = $_SERVER['REQUEST_URI'];
+
+// Dispatcher
+$result = $youRoute->dispatch($method, $uri);
+
+if ($result) {
+    // Route trouvée
+    $route = $result['route']; // Instance de YouRoute\Attribute\Route
+    $params = $result['params']; // Paramètres extraits de l'URL (ex: ['id' => 45])
+    
+    // Récupérer l'action (Contrôleur et Méthode)
+    [$controllerClass, $actionMethod] = $route->getAction();
+    
+    // Instancier le contrôleur et appeler la méthode
+    $controller = new $controllerClass();
+    
+    // Vous pouvez passer les paramètres à la méthode si nécessaire
+    $response = call_user_func_array([$controller, $actionMethod], $params);
+    
+    // Envoyer la réponse
+    $response->send();
+    
+} else {
+    // Route non trouvée (404)
+    http_response_code(404);
+    echo "Page non trouvée";
+}
+</code></pre>
+
+        <h2>Générer des URLs</h2>
+        <p>Vous ne devez jamais écrire des URLs en dur dans votre code. Utilisez plutôt le générateur d'URL avec le nom
+            de la route.</p>
+
+        <pre><code class="language-php">try {
+    // Génère /user/42
+    $url = $youRoute->generateUrl('user_show', ['id' => 42]);
+    echo "&lt;a href='$url'&gt;Voir le profil&lt;/a&gt;";
+
+    // Les paramètres non présents dans le chemin sont ajoutés en Query String
+    // Génère /user/42?ref=newsletter
+    $urlWithQuery = $youRoute->generateUrl('user_show', ['id' => 42, 'ref' => 'newsletter']);
+
+} catch (\RuntimeException $e) {
+    // La route demandée n'existe pas
+}
+</code></pre>
+
+        <h2>Structure des Dossiers</h2>
+        <pre><code class="language-text">you-route/
+├── src/
+│   ├── Attribute/     # Définition de l'attribut #[Route]
+│   ├── Router/        # Logique de collection, résolution et dispatch
+│   └── YouRouteKernal.php # Point d'entrée principal
+└── doc/
+    └── guide.md       # Ce fichier de documentation
+</code></pre>
+
+        <footer class="mt-5 mb-3 text-center text-muted">
+            &copy; 2024 YouFramework
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-php.min.js"></script>
+</body>
+
+</html>
