@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouConfig - Documentation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <style>
+        body {
+            padding-top: 60px;
+        }
+
+        h2 {
+            margin-top: 2rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.5rem;
+        }
+
+        h3 {
+            margin-top: 1.5rem;
+        }
+
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">YouFramework</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="you-route.html">YouRoute</a></li>
+                    <li class="nav-item"><a class="nav-link" href="you-http-foundation.html">YouHttpFoundation</a></li>
+                    <li class="nav-item"><a class="nav-link" href="you-console.html">YouConsole</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="you-config.html">YouConfig</a></li>
+                    <li class="nav-item"><a class="nav-link" href="you-kernel.html">YouKernel</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h1 class="mb-4">Documentation de la Bibliothèque YouConfig</h1>
+
+        <p class="lead"><strong>YouConfig</strong> est un composant simple et efficace pour gérer la configuration de
+            votre application. Il permet de charger des fichiers de configuration PHP et d'accéder aux valeurs via une
+            notation par points ("dot notation").</p>
+
+        <h2>Fonctionnalités Principales</h2>
+        <ul>
+            <li><strong>Chargement Automatique</strong> : Charge tous les fichiers <code>.php</code> d'un répertoire
+                donné.</li>
+            <li><strong>Dot Notation</strong> : Accès simplifié aux configurations imbriquées (ex:
+                <code>database.mysql.host</code>).</li>
+            <li><strong>Helpers de Typage</strong> : Méthodes <code>getInt</code> et <code>getBool</code> pour récupérer
+                des valeurs typées.</li>
+            <li><strong>Validation</strong> : Méthode <code>validate</code> pour s'assurer que les clés critiques sont
+                présentes.</li>
+        </ul>
+
+        <h2>Installation</h2>
+        <pre><code class="language-bash">composer require you-framework/you-config</code></pre>
+
+        <h2>Initialisation</h2>
+        <p>Pour utiliser <code>YouConfig</code>, instanciez la classe <code>YouConfig\Config</code> en lui passant le
+            chemin absolu vers votre dossier de configuration.</p>
+
+        <pre><code class="language-php">use YouConfig\Config;
+
+$configPath = __DIR__ . '/config';
+$config = new Config($configPath);
+</code></pre>
+
+        <h3>Structure du Dossier de Configuration</h3>
+        <p>Le dossier de configuration doit contenir des fichiers PHP qui retournent un tableau associatif. Le nom du
+            fichier (sans extension) servira de clé racine pour accéder aux configurations qu'il contient.</p>
+
+        <p><strong>Exemple :</strong> <code>config/app.php</code></p>
+        <pre><code class="language-php">&lt;?php
+
+return [
+    'name' => 'Mon Application',
+    'debug' => true,
+    'env' => 'production',
+];
+</code></pre>
+
+        <p><strong>Exemple :</strong> <code>config/database.php</code></p>
+        <pre><code class="language-php">&lt;?php
+
+return [
+    'default' => 'mysql',
+    'connections' => [
+        'mysql' => [
+            'host' => 'localhost',
+            'port' => 3306,
+            'user' => 'root',
+        ],
+    ],
+];
+</code></pre>
+
+        <h2>Accéder aux Configurations</h2>
+        <p>Utilisez la méthode <code>get()</code> pour récupérer une valeur.</p>
+
+        <pre><code class="language-php">// Récupérer tout le tableau de 'app.php'
+$appConfig = $config->get('app');
+
+// Récupérer une valeur spécifique
+$appName = $config->get('app.name');
+
+// Récupérer une valeur imbriquée (fichier 'database.php')
+$dbHost = $config->get('database.connections.mysql.host');
+
+// Valeur par défaut si la clé n'existe pas
+$timezone = $config->get('app.timezone', 'UTC');
+</code></pre>
+
+        <h2>Helpers de Typage</h2>
+        <p>Pour vous assurer du type de retour, utilisez les méthodes dédiées :</p>
+        <pre><code class="language-php">// Retourne un entier (int)
+$port = $config->getInt('database.connections.mysql.port', 3306);
+
+// Retourne un booléen (bool)
+// Supporte aussi les chaînes "true", "on", "yes", "1"
+$debug = $config->getBool('app.debug', false);
+</code></pre>
+
+        <h2>Validation</h2>
+        <p>Pour garantir que votre application dispose des configurations nécessaires au démarrage, utilisez
+            <code>validate()</code>.</p>
+        <pre><code class="language-php">try {
+    $config->validate([
+        'app.name',
+        'database.connections.mysql.host'
+    ]);
+} catch (\RuntimeException $e) {
+    die("Erreur de configuration : " . $e->getMessage());
+}
+</code></pre>
+
+        <h2>Structure des Dossiers</h2>
+        <pre><code class="language-text">you-config/
+├── src/
+│   └── Config.php     # Classe principale de gestion
+└── doc/
+    └── guide.md       # Ce fichier de documentation
+</code></pre>
+
+        <footer class="mt-5 mb-3 text-center text-muted">
+            &copy; 2024 YouFramework
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-php.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-bash.min.js"></script>
+</body>
+
+</html>

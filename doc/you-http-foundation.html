@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouHttpFoundation - Documentation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <style>
+        body {
+            padding-top: 60px;
+        }
+
+        h2 {
+            margin-top: 2rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.5rem;
+        }
+
+        h3 {
+            margin-top: 1.5rem;
+        }
+
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">YouFramework</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="you-route.html">YouRoute</a></li>
+                    <li class="nav-item"><a class="nav-link active"
+                            href="you-http-foundation.html">YouHttpFoundation</a></li>
+                    <li class="nav-item"><a class="nav-link" href="you-console.html">YouConsole</a></li>
+                    <li class="nav-item"><a class="nav-link" href="you-config.html">YouConfig</a></li>
+                    <li class="nav-item"><a class="nav-link" href="you-kernel.html">YouKernel</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h1 class="mb-4">Documentation de la Bibliothèque YouHttpFoundation</h1>
+
+        <p class="lead"><strong>YouHttpFoundation</strong> est un composant qui permet de gérer les requêtes et les
+            réponses HTTP de manière orientée objet, en encapsulant les superglobales de PHP.</p>
+
+        <h2>Fonctionnalités Principales</h2>
+        <ul>
+            <li><strong>Abstraction de la Requête</strong> : La classe <code>Request</code> encapsule
+                <code>$_GET</code>, <code>$_POST</code>, <code>$_COOKIE</code>, <code>$_FILES</code> et
+                <code>$_SERVER</code>.</li>
+            <li><strong>Abstraction de la Réponse</strong> : La classe <code>Response</code> facilite la création de
+                réponses HTTP avec contenu, en-têtes et codes de statut.</li>
+            <li><strong>Gestion des Paramètres</strong> : La classe <code>ParameterBag</code> offre une interface fluide
+                pour manipuler les tableaux de données.</li>
+            <li><strong>Interface Standard</strong> : Utilisation de <code>ResponseInterface</code> pour garantir la
+                compatibilité.</li>
+        </ul>
+
+        <h2>Installation</h2>
+        <p>Assurez-vous que votre projet utilise PHP 8.1 ou supérieur.</p>
+        <pre><code class="language-bash">composer require you-framework/you-http-foundation</code></pre>
+
+        <h2>La Classe Request</h2>
+        <p>La classe <code>YouHttpFoundation\Request</code> représente une requête HTTP entrante.</p>
+
+        <h3>Création d'une Requête</h3>
+        <p>La méthode recommandée pour créer une requête est d'utiliser <code>createFromGlobals()</code>, qui capture
+            automatiquement l'environnement PHP actuel.</p>
+        <pre><code class="language-php">use YouHttpFoundation\Request;
+
+$request = Request::createFromGlobals();
+</code></pre>
+
+        <h3>Accéder aux Données</h3>
+        <p>La classe <code>Request</code> expose plusieurs propriétés publiques qui sont des instances de
+            <code>YouHttpFoundation\ParameterBag</code> :</p>
+        <ul>
+            <li><code>$request->query</code> : Correspond à <code>$_GET</code> (paramètres d'URL).</li>
+            <li><code>$request->request</code> : Correspond à <code>$_POST</code> (paramètres de corps).</li>
+            <li><code>$request->cookies</code> : Correspond à <code>$_COOKIE</code>.</li>
+            <li><code>$request->files</code> : Correspond à <code>$_FILES</code>.</li>
+            <li><code>$request->server</code> : Correspond à <code>$_SERVER</code>.</li>
+        </ul>
+
+        <p><strong>Exemple d'utilisation :</strong></p>
+        <pre><code class="language-php">// Récupérer un paramètre GET 'id', avec une valeur par défaut null
+$id = $request->query->get('id');
+
+// Récupérer un paramètre POST 'username'
+$username = $request->request->get('username', 'Anonyme');
+
+// Vérifier si un cookie existe
+if ($request->cookies->has('session_id')) {
+    // ...
+}
+</code></pre>
+
+        <h3>Méthodes Utiles</h3>
+        <ul>
+            <li><code>getPath()</code> : Retourne le chemin de l'URI nettoyé (ex: <code>/blog/article</code>).</li>
+            <li><code>getMethod()</code> : Retourne la méthode HTTP (ex: <code>GET</code>, <code>POST</code>).</li>
+            <li><code>isMethod(string $method)</code> : Vérifie si la méthode correspond (ex:
+                <code>$request->isMethod('POST')</code>).</li>
+        </ul>
+        <p>Note : <code>createFromGlobals()</code> gère automatiquement le décodage du JSON si le header
+            <code>Content-Type</code> est <code>application/json</code> pour les méthodes POST, PUT ou PATCH.</p>
+
+        <h2>La Classe Response</h2>
+        <p>La classe <code>YouHttpFoundation\Response</code> permet de construire la réponse à envoyer au client.</p>
+
+        <h3>Création d'une Réponse</h3>
+        <pre><code class="language-php">use YouHttpFoundation\Response;
+
+$response = new Response(
+    'Contenu de la page (HTML, JSON, etc.)',
+    200, // Code de statut (défaut: 200)
+    ['Content-Type' => 'text/html'] // En-têtes (défaut: [])
+);
+</code></pre>
+
+        <h3>Manipulation de la Réponse</h3>
+        <p>Vous pouvez modifier la réponse après sa création :</p>
+        <pre><code class="language-php">$response->setContent('Nouveau contenu');
+$response->setStatusCode(404);
+$response->headers->set('X-Custom-Header', 'Value');
+</code></pre>
+
+        <h3>Envoyer la Réponse</h3>
+        <p>Pour envoyer les en-têtes et le contenu au navigateur, utilisez la méthode <code>send()</code>.</p>
+        <pre><code class="language-php">$response->send();</code></pre>
+
+        <h2>La Classe ParameterBag</h2>
+        <p>C'est un conteneur utilitaire utilisé par <code>Request</code> et <code>Response</code> pour gérer les
+            collections de données.</p>
+        <p><strong>Méthodes principales :</strong></p>
+        <ul>
+            <li><code>all()</code> : Retourne tous les paramètres.</li>
+            <li><code>keys()</code> : Retourne les clés.</li>
+            <li><code>get(string $key, mixed $default = null)</code> : Récupère une valeur.</li>
+            <li><code>set(string $key, mixed $value)</code> : Définit une valeur.</li>
+            <li><code>has(string $key)</code> : Vérifie l'existence d'une clé.</li>
+            <li><code>remove(string $key)</code> : Supprime un paramètre.</li>
+            <li><code>count()</code> : Retourne le nombre de paramètres.</li>
+            <li><code>replace(array $parameters)</code> : Remplace tous les paramètres.</li>
+            <li><code>add(array $parameters)</code> : Ajoute des paramètres (merge).</li>
+        </ul>
+
+        <h2>Structure des Dossiers</h2>
+        <pre><code class="language-text">you-http-foundation/
+├── src/
+│   ├── ParameterBag.php       # Gestionnaire de clés/valeurs
+│   ├── Request.php            # Objet Requête
+│   ├── Response.php           # Objet Réponse
+│   └── ResponseInterface.php  # Contrat pour les réponses
+└── doc/
+    └── guide.md               # Ce fichier de documentation
+</code></pre>
+
+        <footer class="mt-5 mb-3 text-center text-muted">
+            &copy; 2024 YouFramework
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-php.min.js"></script>
+</body>
+
+</html>

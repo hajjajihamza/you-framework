@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouKernel - Documentation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <style>
+        body {
+            padding-top: 60px;
+        }
+
+        h2 {
+            margin-top: 2rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.5rem;
+        }
+
+        h3 {
+            margin-top: 1.5rem;
+        }
+
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">YouFramework</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="you-route.html">YouRoute</a></li>
+                    <li class="nav-item"><a class="nav-link" href="you-http-foundation.html">YouHttpFoundation</a></li>
+                    <li class="nav-item"><a class="nav-link" href="you-console.html">YouConsole</a></li>
+                    <li class="nav-item"><a class="nav-link" href="you-config.html">YouConfig</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="you-kernel.html">YouKernel</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h1 class="mb-4">Documentation de la Bibliothèque YouKernel</h1>
+
+        <p class="lead"><strong>YouKernel</strong> est le cœur du framework. Il orchestre l'initialisation de
+            l'application, l'injection de dépendances et le cycle de vie des requêtes HTTP et des commandes Console.</p>
+
+        <h2>Fonctionnalités Principales</h2>
+        <ul>
+            <li><strong>Classe Application</strong> : Point d'entrée unique pour démarrer le projet.</li>
+            <li><strong>Conteneur de Services</strong> : Gestionnaire de dépendances avec auto-wiring (résolution
+                automatique).</li>
+            <li><strong>Bootstrap</strong> : Chargement automatique de l'environnement, de la configuration et des
+                routes.</li>
+            <li><strong>Micro-Kerneaux</strong> : Séparation claire entre le cycle de vie HTTP (<code>HttpKernel</code>)
+                et Console (<code>YouConsoleKernel</code>).</li>
+        </ul>
+
+        <h2>Installation</h2>
+        <pre><code class="language-bash">composer require you-framework/you-kernel</code></pre>
+
+        <h2>Structure d'un Projet</h2>
+        <p>Pour utiliser YouKernel, votre projet doit suivre une structure standard :</p>
+        <pre><code class="language-text">my-project/
+├── config/              # Fichiers de configuration
+├── public/
+│   └── index.php        # Point d'entrée HTTP
+├── src/
+│   ├── Controller/      # Contrôleurs
+│   └── Entity/          # Entités
+└── you                  # Point d'entrée Console
+</code></pre>
+
+        <h2>Démarrer l'Application</h2>
+        <p>La classe <code>YouKernel\Application</code> est la façade principale.</p>
+
+        <h3>Point d'entrée HTTP (<code>public/index.php</code>)</h3>
+        <pre><code class="language-php">&lt;?php
+
+use YouKernel\Application;
+
+require_once dirname(__DIR__) . '/vendor/autoload.php';
+
+// Initialise l'application avec la racine du projet
+$app = new Application(dirname(__DIR__));
+
+// Lance le traitement HTTP
+$app->runHttp();
+</code></pre>
+
+        <h3>Point d'entrée Console (<code>you</code>)</h3>
+        <pre><code class="language-php">#!/usr/bin/env php
+&lt;?php
+
+use YouKernel\Application;
+
+require __DIR__ . '/vendor/autoload.php';
+
+$app = new Application(__DIR__);
+
+// Lance le traitement Console
+$app->runConsole($argv);
+</code></pre>
+
+        <h2>Le Conteneur de Services</h2>
+        <p>YouKernel intègre un conteneur d'injection de dépendances (DI) simple et puissant.</p>
+
+        <h3>Auto-wiring</h3>
+        <p>Le conteneur est capable de résoudre automatiquement les dépendances de vos classes (Contrôleurs, Services,
+            Commandes) en analysant leurs constructeurs via la réflexion PHP.</p>
+
+        <pre><code class="language-php">namespace App\Service;
+
+class LoggerService {
+    public function log(string $msg) { /* ... */ }
+}
+
+namespace App\Controller;
+
+class HomeController {
+    // LoggerService sera automatiquement injecté sans configuration
+    public function __construct(private LoggerService $logger) {}
+}
+</code></pre>
+
+        <h3>Configuration Manuelle</h3>
+        <p>Si nécessaire (interfaces, scalaires, librairies tierces), vous pouvez configurer le conteneur via les
+            fichiers de configuration (orchestré par <code>ContainerBootstrapper</code>, non détaillé ici mais
+            extensible).</p>
+
+        <h2>Cycle de Vie HTTP</h2>
+        <ol>
+            <li><strong>Bootstrap</strong> : Chargement des variables d'env, de la config et du conteneur.</li>
+            <li><strong>Routing</strong> : Le <code>HttpKernel</code> utilise <code>YouRoute</code> pour trouver la
+                route correspondante.</li>
+            <li><strong>Résolution</strong> : Le <code>ControllerResolver</code> instancie le contrôleur et injecte les
+                dépendances.</li>
+            <li><strong>Exécution</strong> : L'action du contrôleur est appelée.</li>
+            <li><strong>Réponse</strong> : Le résultat est transformé en <code>Response</code> et envoyé au client.</li>
+        </ol>
+
+        <h2>Structure des Dossiers du Noyau</h2>
+        <pre><code class="language-text">you-kernel/
+├── src/
+│   ├── Application.php    # Façade principale
+│   ├── Component/
+│   │   ├── Container/     # Conteneur DI
+│   │   ├── Http/          # Kernel HTTP
+│   │   └── Controller/    # Logique des contrôleurs
+│   └── Bootstrap/         # Classes d'initialisation
+└── doc/
+    └── guide.md           # Ce fichier de documentation
+</code></pre>
+
+        <footer class="mt-5 mb-3 text-center text-muted">
+            &copy; 2024 YouFramework
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-php.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-bash.min.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouConsole - Documentation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <style>
+        body {
+            padding-top: 60px;
+        }
+
+        h2 {
+            margin-top: 2rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.5rem;
+        }
+
+        h3 {
+            margin-top: 1.5rem;
+        }
+
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">YouFramework</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="you-route.html">YouRoute</a></li>
+                    <li class="nav-item"><a class="nav-link" href="you-http-foundation.html">YouHttpFoundation</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="you-console.html">YouConsole</a></li>
+                    <li class="nav-item"><a class="nav-link" href="you-config.html">YouConfig</a></li>
+                    <li class="nav-item"><a class="nav-link" href="you-kernel.html">YouKernel</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h1 class="mb-4">Documentation de la Bibliothèque YouConsole</h1>
+
+        <p class="lead"><strong>YouConsole</strong> est un composant permettant de créer et de gérer des applications en
+            ligne de commande (CLI). Il fournit une structure robuste pour définir des commandes, gérer les entrées
+            (arguments, options) et formater les sorties.</p>
+
+        <h2>Fonctionnalités Principales</h2>
+        <ul>
+            <li><strong>Système de Commandes</strong> : Créez des classes de commandes isolées et réutilisables.</li>
+            <li><strong>Gestion des Entrées</strong> : Parsing automatique des arguments et options (avec ou sans
+                valeurs).</li>
+            <li><strong>Gestion des Sorties</strong> : Affichage coloré et formaté (info, error, success, etc.).</li>
+            <li><strong>Auto-découverte</strong> : Chargement automatique des commandes depuis un dossier spécifié.</li>
+        </ul>
+
+        <h2>Installation</h2>
+        <pre><code class="language-bash">composer require you-framework/you-console</code></pre>
+
+        <h2>Créer une Commande</h2>
+        <p>Pour créer une nouvelle commande, vous devez créer une classe qui étend
+            <code>YouConsole\Command\AbstractCommand</code>.</p>
+        <p>Vous devez implémenter deux méthodes :</p>
+        <ol>
+            <li><code>configure()</code> : Définition du nom, de la description, des arguments et des options.</li>
+            <li><code>execute(Input $input, Output $output)</code> : La logique métier de votre commande.</li>
+        </ol>
+
+        <h3>Exemple de Commande</h3>
+        <pre><code class="language-php">&lt;?php
+
+namespace App\Command;
+
+use YouConsole\Command\AbstractCommand;
+use YouConsole\Input\Input;
+use YouConsole\Output\Output;
+
+class GreetCommand extends AbstractCommand
+{
+    protected function configure(): void
+    {
+        $this
+            // Le nom de la commande (ex: php you app:greet)
+            ->setName('app:greet')
+            
+            // Une courte description
+            ->setDescription('Salue un utilisateur.')
+            
+            // Un argument obligatoire "name"
+            ->addArgument('name', required: true, description: 'Le nom de la personne à saluer')
+            
+            // Une option "yell" (booléen, pas de valeur attendue) avec raccourci -Y
+            ->addOption('yell', shortcut: 'Y', description: 'Si défini, le message sera en majuscules');
+    }
+
+    protected function execute(Input $input, Output $output): int
+    {
+        // Récupérer l'argument "name"
+        $name = $input->getArgument('name');
+        
+        $message = "Bonjour, $name !";
+
+        // Vérifier si l'option "yell" est activée
+        if ($input->getOption('yell')) {
+            $message = strtoupper($message);
+        }
+
+        // Afficher le message en vert (succès)
+        $output->success($message);
+
+        // Retourner le code de succès (0)
+        return AbstractCommand::STATUS_SUCCESS;
+    }
+}
+</code></pre>
+
+        <h2>Utiliser YouConsoleKernel</h2>
+        <p>Le kernel est le point d'entrée de votre application console. Il se charge de découvrir les commandes et
+            d'exécuter celle demandée.</p>
+        <pre><code class="language-php">#!/usr/bin/env php
+&lt;?php
+
+require __DIR__ . '/vendor/autoload.php';
+
+use YouConsole\YouConsoleKernel;
+use YouKernel\Component\Container\ContainerBuilder;
+
+// ... (Initialisation du conteneur si nécessaire)
+
+$kernel = new YouConsoleKernel($container);
+
+// Exécuter l'application
+$exitCode = $kernel->run();
+
+exit($exitCode);
+</code></pre>
+
+        <h2>Entrées (Input)</h2>
+        <p>La classe <code>Input</code> permet d'accéder aux données passées en ligne de commande.</p>
+        <ul>
+            <li><code>$input->getArgument('nom')</code> : Récupère la valeur d'un argument.</li>
+            <li><code>$input->getOption('nom')</code> : Récupère la valeur d'une option.</li>
+            <li><code>$input->hasOption('nom')</code> : Vérifie si une option a été passée.</li>
+        </ul>
+
+        <h2>Sorties (Output)</h2>
+        <p>La classe <code>Output</code> permet d'écrire dans la console avec du style.</p>
+        <ul>
+            <li><code>$output->write($message)</code> : Écrit sans retour à la ligne.</li>
+            <li><code>$output->writeln($message)</code> : Écrit avec retour à la ligne.</li>
+            <li><code>$output->success($message)</code> : Texte en vert.</li>
+            <li><code>$output->error($message)</code> : Texte blanc sur fond rouge.</li>
+            <li><code>$output->info($message)</code> : Texte en cyan.</li>
+            <li><code>$output->comment($message)</code> : Texte en jaune.</li>
+            <li><code>$output->question($message)</code> : Texte noir sur fond cyan.</li>
+        </ul>
+
+        <h2>Structure des Dossiers</h2>
+        <pre><code class="language-text">you-console/
+├── src/
+│   ├── Command/       # Classes de base pour les commandes
+│   ├── Input/         # Gestion parsing arguments/options
+│   ├── Output/        # Gestion affichage et styles
+│   └── YouConsoleKernel.php # Point d'entrée
+└── doc/
+    └── guide.md       # Ce fichier de documentation
+</code></pre>
+
+        <footer class="mt-5 mb-3 text-center text-muted">
+            &copy; 2024 YouFramework
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-php.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-bash.min.js"></script>
+</body>
+
+</html>
