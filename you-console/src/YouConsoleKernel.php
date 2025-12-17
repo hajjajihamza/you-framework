@@ -79,7 +79,7 @@ class YouConsoleKernel
      */
     public function registerCommand(AbstractCommand ...$commands): static
     {
-        array_map(static fn(AbstractCommand $command) => $this->commandCollection->add($command), $commands);
+        array_map(fn(AbstractCommand $command) => $this->commandCollection->add($command), $commands);
 
         return $this;
     }

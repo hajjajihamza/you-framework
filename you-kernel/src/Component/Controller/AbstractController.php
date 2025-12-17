@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace YouKernel\Component\Controller;
 
+use Twig\Environment;
 use YouHttpFoundation\Response;
 use YouKernel\Component\Container\Container;
 use YouRoute\YouRouteKernal;
@@ -45,29 +46,10 @@ abstract class AbstractController
      */
     protected function render(string $view, array $data = [], int $status = 200): Response
     {
-        // Extraction des données pour les rendre accessibles dans la vue
-        extract($data);
+        /** @var Environment $twig */
+        $twig = $this->container->get(Environment::class);
 
-        // Démarrage de la temporisation de sortie
-        ob_start();
-
-        // Inclusion du fichier de vue
-        // On suppose que les vues sont dans le dossier 'templates' à la racine du projet
-        // TODO: Rendre ce chemin configurable
-        $viewPath = $this->container->get('project_dir') . '/templates/' . $view;
-
-        if (!file_exists($viewPath)) {
-            // Fallback simple si le fichier n'existe pas, pour éviter une erreur fatale immédiate lors du dev
-            // Ou on pourrait throw une exception. Pour l'instant, on throw.
-            throw new \RuntimeException("La vue '$view' n'a pas été trouvée dans '$viewPath'.");
-        }
-
-        include $viewPath;
-
-        // Récupération du contenu du tampon
-        $content = ob_get_clean();
-
-        return new Response($content, $status);
+        return new Response($twig->render($view, $data), $status);
     }
 
     /**

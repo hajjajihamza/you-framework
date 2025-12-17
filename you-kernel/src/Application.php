@@ -8,7 +8,8 @@ use YouKernel\Bootstrap\{
     EnvironmentLoader,
     ContainerBootstrapper,
     HttpBootstrapper,
-    ConsoleBootstrapper
+    ConsoleBootstrapper,
+    TwigBootstrapper
 };
 use YouKernel\Runner\{HttpRunner, ConsoleRunner};
 use YouConsole\YouConsoleKernel;
@@ -77,6 +78,9 @@ final class Application
     {
         // Initialisation du Kernel HTTP
         $this->httpKernel ??= new HttpBootstrapper()->boot($this->container);
+
+        // Initialisation de Twig
+        new TwigBootstrapper()->boot($this->container);
 
         // Lancement du Kernel
         new HttpRunner()->run($this->httpKernel);
