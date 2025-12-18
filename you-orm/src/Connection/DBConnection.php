@@ -74,9 +74,9 @@ class DBConnection
     /**
      * Get the database configuration.
      *
-     * @return mixed
+     * @return ConnectionConfig
      */
-    public function getConfig()
+    public function getConfig(): ConnectionConfig
     {
         return $this->config;
     }
