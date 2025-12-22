@@ -66,7 +66,7 @@ abstract class AbstractRepository
      */
     public function find(mixed $id): ?object
     {
-        $results = $this->findBy(['id' => $id], null, 1);
+        $results = $this->findBy([$this->em->getPrimaryKeyName($this->entityClass) => $id], null, 1);
 
         return $results[0] ?? null;
     }
