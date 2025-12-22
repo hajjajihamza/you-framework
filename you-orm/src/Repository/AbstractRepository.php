@@ -61,6 +61,19 @@ abstract class AbstractRepository
     }
 
     /**
+     * Trouve une entité par son identifiant.
+     *
+     * @param mixed $id L'identifiant de l'entité
+     * @return object|null L'entité correspondante ou null si elle n'existe pas
+     */
+    public function find(mixed $id): ?object
+    {
+        $results = $this->findBy(['id' => $id], null, 1);
+
+        return $results[0] ?? null;
+    }
+
+    /**
      * Récupère toutes les entités de la table associée.
      *
      * Exécute une requête SELECT * sur la table et hydrate les résultats
