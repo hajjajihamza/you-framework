@@ -9,7 +9,8 @@ use YouKernel\Bootstrap\{
     ContainerBootstrapper,
     HttpBootstrapper,
     ConsoleBootstrapper,
-    TwigBootstrapper
+    TwigBootstrapper,
+    OrmBootstrapper
 };
 use YouKernel\Runner\{HttpRunner, ConsoleRunner};
 use YouConsole\YouConsoleKernel;
@@ -82,6 +83,9 @@ final class Application
         // Initialisation de Twig
         new TwigBootstrapper()->boot($this->container);
 
+        // Initialisation de l'ORM
+        new OrmBootstrapper()->boot($this->container);
+
         // Lancement du Kernel
         new HttpRunner()->run($this->httpKernel);
     }
@@ -98,6 +102,9 @@ final class Application
     {
         // Initialisation du Kernel Console
         $this->consoleKernel ??= new ConsoleBootstrapper()->boot($this->container);
+
+        // Initialisation de l'ORM
+        new OrmBootstrapper()->boot($this->container);
 
         // Lancement du Kernel
         new ConsoleRunner()->run($this->consoleKernel, $argv);
