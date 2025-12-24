@@ -25,6 +25,7 @@ class DBConnection
     public function __construct(ConnectionConfig $config)
     {
         $this->config = $config;
+        $this->connect();
     }
 
     /**
@@ -32,7 +33,7 @@ class DBConnection
      *
      * @throws PDOException If connection fails
      */
-    public function connect(): void
+    private function connect(): void
     {
         if ($this->connection !== null) {
             return; // Already connected
