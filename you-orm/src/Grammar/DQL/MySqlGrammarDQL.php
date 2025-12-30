@@ -1,16 +1,15 @@
 <?php
 
-namespace YouOrm\Query\Grammar;
+namespace YouOrm\Grammar\DQL;
 
 /**
- * Class SqliteGrammar
- * Grammaire SQL spécifique à SQLite.
+ * Class MySqlGrammar
+ * Grammaire SQL spécifique à MySQL.
  */
-class SqliteGrammar extends AbstractGrammar
+class MySqlGrammarDQL extends AbstractGrammarDQLDQL
 {
     /**
-     * Compile la clause LIMIT et OFFSET pour SQLite.
-     * SQLite utilise la même syntaxe que MySQL/PostgreSQL pour LIMIT/OFFSET.
+     * Compile la clause LIMIT et OFFSET pour MySQL.
      */
     protected function compileLimit(?int $limit, ?int $offset): string
     {

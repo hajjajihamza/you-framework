@@ -24,7 +24,8 @@
             "YouConsole\\": "you-console/src/",
             "YouKernel\\": "you-kernel/src/",
             "YouConfig\\": "you-config/src/",
-            "YouOrm\\": "you-orm/src/"
+            "YouOrm\\": "you-orm/src/",
+            "YouMake\\": "you-make/src/"
         },
         "files": [
             "helper/functions.php"

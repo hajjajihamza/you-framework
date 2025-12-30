@@ -1,0 +1,18 @@
+<?php
+
+namespace {{ namespace }};
+
+use YouHttpFoundation\Request;
+use YouHttpFoundation\Response;
+
+class {{ class }}
+{
+    /**
+     * @param Request $request
+     * @return Response
+     */
+    public function index(Request $request): Response
+    {
+        return new Response("Hello from {{ class }}");
+    }
+}

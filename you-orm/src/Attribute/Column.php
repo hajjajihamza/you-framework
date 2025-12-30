@@ -20,14 +20,16 @@ class Column
      * Constructeur de l'attribut Column.
      *
      * @param string $name Le nom de la colonne dans la base de données.
-     * @param string $type Le type SQL de la colonne (par défaut 'string').
-     * @param int|null $length La longueur maximale de la colonne (ex: pour VARCHAR) (par défaut null).
+     * @param string $type Le type SQL de la colonne (ex: ColumnType::STRING, ColumnType::BIGINT, etc.).
+     * @param int|null $length La longueur maximale de la colonne (ex: pour VARCHAR, VARBINARY) (par défaut null).
      * @param bool $nullable Indique si la colonne accepte les valeurs NULL (par défaut false).
      * @param bool $unique Indique si la colonne doit avoir une contrainte d'unicité (par défaut false).
      * @param mixed $default La valeur par défaut de la colonne (par défaut null).
-     * @param string|null $enumType La classe d'enum (BackedEnum) associée à cette colonne (par défaut null).
-     * @param int|null $precision La précision de la colonne pour les types décimaux (nombre total de chiffres) (par défaut null).
-     * @param int|null $scale L'échelle de la colonne pour les types décimaux (nombre de chiffres après la virgule) (par défaut null).
+     * @param array|null $enumOptions Les options d'enum (ex: ['option1', 'option2']) (par défaut null).
+     * @param int|null $precision La précision pour les types décimaux ou temporels (nombre total de chiffres ou fraction de seconde) (par défaut null).
+     * @param int|null $scale L'échelle pour les types décimaux (nombre de chiffres après la virgule) (par défaut null).
+     * @param bool $isPrimaryKey Indique si la colonne est une clé primaire (par défaut false).
+     * @param bool $isAutoIncrement Indique si la colonne est auto-incrémentée (par défaut true).
      */
     public function __construct(
         private string $name,
@@ -36,9 +38,11 @@ class Column
         private bool $nullable = false,
         private bool $unique = false,
         private mixed $default = null,
-        private ?string $enumType = null,
+        private ?array $enumOptions = null,
         private ?int $precision = null,
-        private ?int $scale = null
+        private ?int $scale = null,
+        private bool $isPrimaryKey = false,
+        private bool $isAutoIncrement = true
     ) {
         $this->validateType($this->type);
     }
@@ -179,22 +183,22 @@ class Column
     /**
      * Récupère le type d'enum associé.
      *
-     * @return string|null La classe de l'enum ou null si non définie.
+     * @return array|null Le type d'enum associé ou null si non défini.
      */
-    public function getEnumType(): ?string
+    public function getEnumOptions(): ?array
     {
-        return $this->enumType;
+        return $this->enumOptions;
     }
 
     /**
      * Définit le type d'enum associé.
      *
-     * @param string|null $enumType La classe de l'enum.
+     * @param array|null $enumOptions Le type d'enum associé.
      * @return self
      */
-    public function setEnumType(?string $enumType): self
+    public function setEnumOptions(?array $enumOptions): self
     {
-        $this->enumType = $enumType;
+        $this->enumOptions = $enumOptions;
         return $this;
     }
 
@@ -239,6 +243,44 @@ class Column
     public function setScale(?int $scale): self
     {
         $this->scale = $scale;
+        return $this;
+    }
+
+    /**
+     * Indique si la colonne est une clé primaire.
+     * @return bool
+     */
+    public function isPrimaryKey(): bool
+    {
+        return $this->isPrimaryKey;
+    }
+
+    /**
+     * Indique si la colonne est une clé primaire.
+     * @param bool $isPrimaryKey
+     * @return $this
+     */
+    public function setPrimary(bool $isPrimaryKey): self {
+        $this->isPrimaryKey = $isPrimaryKey;
+        return $this;
+    }
+
+    /**
+     * Indique si la colonne est auto-incrémentée.
+     * @return bool
+     */
+    public function isAutoIncrement(): bool
+    {
+        return $this->isAutoIncrement;
+    }
+
+    /**
+     * Indique si la colonne est auto-incrémentée.
+     * @param bool $isAutoIncrement
+     * @return $this
+     */
+    public function setAutoIncrement(bool $isAutoIncrement): self {
+        $this->isAutoIncrement = $isAutoIncrement;
         return $this;
     }
 

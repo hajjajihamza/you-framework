@@ -1,0 +1,29 @@
+<?php
+
+use YouOrm\Migration\AbstractMigration;
+
+class {{ class }} extends AbstractMigration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up(): void
+    {
+        $sql = <<<SQL
+{{ sql }}
+SQL;
+        $this->execute($sql);
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down(): void
+    {
+        // Drop tables logic if needed, or manual SQL
+    }
+}

@@ -1,0 +1,153 @@
+<?php
+
+namespace YouOrm\Grammar\DDL;
+
+use YouOrm\Attribute\Column;
+use YouOrm\Type\ColumnType;
+
+/**
+ * Class AbstractGrammarDDL
+ * Logique de base pour la génération de DDL.
+ */
+abstract class AbstractGrammarDDL implements GrammarDDLInterface
+{
+    /**
+     * @var string Le caractère d'enveloppement des identifiants (ex: ` pour MySQL, " pour PostgreSQL).
+     */
+    protected string $wrapper = '';
+
+    /**
+     * {@inheritDoc}
+     */
+    public function compileCreateTable(string $table, array $columns): string
+    {
+        $columnDefinitions = [];
+
+        foreach ($columns as $column) {
+            $columnDefinitions[] = $this->compileColumn($column);
+        }
+
+        return sprintf(
+            'CREATE TABLE %s (%s)',
+            $this->wrap($table),
+            implode(', ', $columnDefinitions)
+        );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function compileDropTable(string $table): string
+    {
+        return sprintf('DROP TABLE %s', $this->wrap($table));
+    }
+
+    /**
+     * Compile la définition d'une colonne.
+     *
+     * @param Column $column
+     * @return string
+     */
+    protected function compileColumn(Column $column): string
+    {
+        $sql = sprintf('%s %s', $this->wrap($column->getName()), $this->getType($column));
+
+        if (!$column->isNullable()) {
+            $sql .= ' NOT NULL';
+        }
+
+        if ($column->getDefault()) {
+            $sql .= ' DEFAULT ' . $this->formatDefault($column->getDefault());
+        }
+
+        if ($column->isUnique()) {
+            $sql .= ' UNIQUE';
+        }
+
+        if ($column->isPrimaryKey()) {
+            $sql .= ' PRIMARY KEY';
+        }
+
+        if ($column->isAutoIncrement()) {
+            $sql .= ' ' . $this->getAutoIncrementSql();
+        }
+
+        return $sql;
+    }
+
+    /**
+     * Récupère le type SQL complet pour une colonne.
+     *
+     * @param Column $column
+     * @return string
+     */
+    protected function getType(Column $column): string {
+        $length = $column->getLength();
+        $precision = $column->getPrecision();
+        $scale = $column->getScale();
+
+        return match ($column->getType()) {
+            ColumnType::SMALLINT => 'SMALLINT',
+            ColumnType::INTEGER => 'INT',
+            ColumnType::BIGINT => 'BIGINT',
+            ColumnType::DECIMAL => sprintf('NUMERIC(%d, %d)', $precision ?? 10, $scale ?? 0),
+            ColumnType::SMALL_FLOAT => 'REAL',
+            ColumnType::FLOAT => 'DOUBLE PRECISION',
+            ColumnType::STRING => sprintf('VARCHAR(%d)', $length ?? 255),
+            ColumnType::TEXT => 'TEXT',
+            ColumnType::UUID => 'CHAR(36)',
+            ColumnType::BINARY => sprintf('VARBINARY(%d)', $length ?? 255),
+            ColumnType::BLOB => 'BLOB',
+            ColumnType::BOOLEAN => 'BOOLEAN',
+            ColumnType::DATE => 'DATE',
+            ColumnType::DATETIME => 'DATETIME',
+            ColumnType::DATETIME_TZ => 'TIMESTAMP',
+            ColumnType::TIME => 'TIME',
+            ColumnType::ARRAY => 'LONGTEXT',
+            ColumnType::JSON => 'JSON',
+            default => 'VARCHAR(255)',
+        };
+    }
+
+    /**
+     * Récupère la syntaxe SQL pour l'auto-incrément.
+     *
+     * @return string
+     */
+    abstract protected function getAutoIncrementSql(): string;
+
+    /**
+     * Formate la valeur par défaut pour le SQL.
+     *
+     * @param mixed $default
+     * @return string
+     */
+    protected function formatDefault(mixed $default): string
+    {
+        if (is_string($default)) {
+            return sprintf("'%s'", addslashes($default));
+        }
+
+        if (is_bool($default)) {
+            return $default ? '1' : '0';
+        }
+
+        if (is_null($default)) {
+            return 'NULL';
+        }
+
+        return (string) $default;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function wrap(string $value): string
+    {
+        if ($value === '*') {
+            return $value;
+        }
+
+        return sprintf('%s%s%s', $this->wrapper, $value, $this->wrapper);
+    }
+}

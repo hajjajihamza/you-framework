@@ -28,7 +28,10 @@ services:
       - db_data:/var/lib/mysql
     networks:
       - internal
-
+  composer:
+    image: composer:latest
+    volumes:
+      - ./:/app
 networks:
   internal:
 

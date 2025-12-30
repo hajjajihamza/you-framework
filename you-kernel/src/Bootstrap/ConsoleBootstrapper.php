@@ -6,6 +6,12 @@ use YouConfig\Config;
 use YouConsole\Helper\ListCommand;
 use YouConsole\YouConsoleKernel;
 use YouKernel\Component\Container\Container;
+use YouMake\Command\Generator\{
+    ControllerMakeCommand,
+    ModelMakeCommand,
+    CommandMakeCommand
+};
+
 
 /**
  * Classe ConsoleBootstrapper
@@ -36,7 +42,14 @@ final class ConsoleBootstrapper
 
         $kernel = new YouConsoleKernel($container);
         $kernel->setCommandsDirectory($commandsPath);
-        $kernel->registerCommand(new ListCommand());
+        $kernel->addCommandsDirectory($projectDir . '/you-orm/src/Command');
+
+        $kernel->registerCommand(
+            new ListCommand(),
+            new ControllerMakeCommand(),
+            new ModelMakeCommand(),
+            new CommandMakeCommand()
+        );
 
         $container->set(YouConsoleKernel::class, $kernel);
 

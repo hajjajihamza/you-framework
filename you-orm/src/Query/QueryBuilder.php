@@ -4,12 +4,13 @@ namespace YouOrm\Query;
 
 use PDO;
 use PDOStatement;
-
-use YouOrm\Query\Grammar\GrammarInterface;
-use YouOrm\Query\Grammar\MySqlGrammar;
-use YouOrm\Query\Grammar\PostgreSqlGrammar;
-use YouOrm\Query\Grammar\SqliteGrammar;
-use YouOrm\Query\Grammar\SqlServerGrammar;
+use YouOrm\Grammar\DQL\{
+    GrammarDQLInterface,
+    MySqlGrammarDQL,
+    PostgreSqlGrammarDQL,
+    SqliteGrammarDQL,
+    SqlServerGrammarDQL
+};
 
 /**
  * Class QueryBuilder
@@ -62,8 +63,8 @@ class QueryBuilder
     /** @var array Liste des clauses HAVING */
     private array $havings = [];
 
-    /** @var GrammarInterface Grammaire SQL pour le SGBD actuel */
-    private GrammarInterface $grammar;
+    /** @var GrammarDQLInterface Grammaire SQL pour le SGBD actuel */
+    private GrammarDQLInterface $grammar;
 
     /**
      * Initialise une nouvelle instance du QueryBuilder.
@@ -84,20 +85,20 @@ class QueryBuilder
         $driver = $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
 
         $this->grammar = match ($driver) {
-            'pgsql' => new PostgreSqlGrammar(),
-            'sqlsrv' => new SqlServerGrammar(),
-            'sqlite' => new SqliteGrammar(),
-            default => new MySqlGrammar(),
+            'pgsql' => new PostgreSqlGrammarDQL(),
+            'sqlsrv' => new SqlServerGrammarDQL(),
+            'sqlite' => new SqliteGrammarDQL(),
+            default => new MySqlGrammarDQL(),
         };
     }
 
     /**
      * Définit manuellement une grammaire.
      *
-     * @param GrammarInterface $grammar
+     * @param GrammarDQLInterface $grammar
      * @return self
      */
-    public function setGrammar(GrammarInterface $grammar): self
+    public function setGrammar(GrammarDQLInterface $grammar): self
     {
         $this->grammar = $grammar;
         return $this;
@@ -106,9 +107,9 @@ class QueryBuilder
     /**
      * Retourne la grammaire utilisée.
      *
-     * @return GrammarInterface
+     * @return GrammarDQLInterface
      */
-    public function getGrammar(): GrammarInterface
+    public function getGrammar(): GrammarDQLInterface
     {
         return $this->grammar;
     }

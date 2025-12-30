@@ -17,14 +17,14 @@ class YouConsoleKernel
     /** @var Output Gestionnaire de sortie */
     private Output $output;
 
-    /** @var ?string Répertoire des commandes pour l'auto-discovery */
-    private ?string $commandsDirectory = null;
+    /** @var array<string> Répertoires des commandes pour l'auto-discovery */
+    private array $commandsDirectories = [];
 
     public function __construct(private Container $container)
     {
         $this->output = new Output();
         $this->commandCollection = new CommandCollection();
-        $this->commandsDirectory ??= $container->get('project_dir') . '/src/Controller';
+        $this->addCommandsDirectory($container->get('project_dir') . '/src/Command');
     }
 
     /**
@@ -33,7 +33,8 @@ class YouConsoleKernel
      * @param array<string>|null $argv Arguments de la ligne de commande (null = utiliser $_SERVER['argv'])
      * @return int Code de retour (0 = succès, autre = erreur)
      */
-    public function run(?array $argv = null): int {
+    public function run(?array $argv = null): int
+    {
 
         try {
             // Utiliser les arguments globaux si non fournis
@@ -90,9 +91,11 @@ class YouConsoleKernel
     private function autoDiscoverCommands(): void
     {
         $discovery = new CommandDiscovery($this->container);
-        $discoveredCommands = $discovery->discover($this->commandsDirectory);
 
-        $this->registerCommand(...$discoveredCommands);
+        foreach ($this->commandsDirectories as $directory) {
+            $discoveredCommands = $discovery->discover($directory);
+            $this->registerCommand(...$discoveredCommands);
+        }
     }
 
     /**
@@ -119,22 +122,34 @@ class YouConsoleKernel
     }
 
     /**
-     * @return string
+     * @return array<string>
      */
-    public function getCommandsDirectory(): string
+    public function getCommandsDirectories(): array
     {
-        return $this->commandsDirectory;
+        return $this->commandsDirectories;
     }
 
     /**
      * @param string $commandsDirectory
      * @return YouConsoleKernel
      */
-    public function setCommandsDirectory(string $commandsDirectory): self
+    public function addCommandsDirectory(string $commandsDirectory): self
     {
-        $this->commandsDirectory = $commandsDirectory;
+        if (!in_array($commandsDirectory, $this->commandsDirectories)) {
+            $this->commandsDirectories[] = $commandsDirectory;
+        }
 
         return $this;
+    }
+
+    /**
+     * @deprecated Use addCommandsDirectory instead
+     * @param string $commandsDirectory
+     * @return YouConsoleKernel
+     */
+    public function setCommandsDirectory(string $commandsDirectory): self
+    {
+        return $this->addCommandsDirectory($commandsDirectory);
     }
 
 
