@@ -67,7 +67,7 @@ readonly class EntitySchemaReader
                 }
 
                 /** @var Column $column */
-                $column = $column[0]->newInstance();
+                $column = $columnAttrs[0]->newInstance();
 
                 $columns[] = $column;
             }
