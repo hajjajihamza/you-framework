@@ -53,7 +53,7 @@ class ServeCommand extends AbstractCommand
     {
         // Récupérer la configuration
         /** @var Config $config */
-        $config = $this->container->get('config');
+        $config = $this->container->get(Config::class);
 
         // Récupérer l'URL depuis la configuration
         $appUrl = $config->get('app.url', 'http://127.0.0.1:8000');
