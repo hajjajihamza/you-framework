@@ -2,13 +2,14 @@
 
 namespace {{ namespace }};
 
-use YouOrm\Attribute\Table;
-use YouOrm\Attribute\Column;
+use YouOrm\Schema\Attribute\Table;
+use YouOrm\Schema\Attribute\Column;
+use YouOrm\Schema\Type\ColumnType;
 
 #[Table(name: '{{ table }}')]
 class {{ class }}
 {
-    #[Column(name: 'id', type: 'integer', primary: true, autoincrement: true)]
+    #[Column(name: 'id', type:  ColumnType::INTEGER, primaryKey: true, autoincrement: true)]
     private int $id;
 
     public function getId(): int
