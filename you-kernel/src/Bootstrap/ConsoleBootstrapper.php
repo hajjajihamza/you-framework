@@ -8,7 +8,7 @@ use YouConsole\YouConsoleKernel;
 use YouKernel\Component\Container\Container;
 use YouMake\Command\Generator\{
     ControllerMakeCommand,
-    ModelMakeCommand,
+    EntityMakeCommand,
     CommandMakeCommand
 };
 
@@ -47,7 +47,7 @@ final class ConsoleBootstrapper
         $kernel->registerCommand(
             new ListCommand(),
             new ControllerMakeCommand(),
-            new ModelMakeCommand(),
+            new EntityMakeCommand(),
             new CommandMakeCommand()
         );
 
