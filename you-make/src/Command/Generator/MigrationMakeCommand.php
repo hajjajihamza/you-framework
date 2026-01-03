@@ -105,8 +105,6 @@ class MigrationMakeCommand extends AbstractGeneratorCommand
      */
     protected function getReplacements(string $className): array
     {
-        $replacements = parent::getReplacements($className);
-
         /**
          * @var Config $config
          */
@@ -163,7 +161,9 @@ class MigrationMakeCommand extends AbstractGeneratorCommand
 
         $migrationSql = $generator->generateDiff($diff);
 
-        $replacements['{{{ up }}'] = $migrationSql['up'];
+        // 6. Replace
+        $replacements['{{ class }}'] = $className;
+        $replacements['{{ up }}'] = $migrationSql['up'];
         $replacements['{{ down }}'] = $migrationSql['down'];
         return $replacements;
     }
@@ -176,6 +176,6 @@ class MigrationMakeCommand extends AbstractGeneratorCommand
      */
     protected function getClassName(string $name = 'Version'): string
     {
-        return sprintf('%s_%s_%s', $name, date('Y_m_d_His_'), random_int(100000, 999999));
+        return sprintf('%s_%s_%s', $name, date('Y_m_d_His'), random_int(100000, 999999));
     }
 }

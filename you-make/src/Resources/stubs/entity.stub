@@ -9,7 +9,7 @@ use YouOrm\Schema\Type\ColumnType;
 #[Table(name: '{{ table }}')]
 class {{ class }}
 {
-    #[Column(name: 'id', type:  ColumnType::INTEGER, primaryKey: true, autoincrement: true)]
+    #[Column(name: 'id', type:  ColumnType::INTEGER, primaryKey: true, autoIncrement: true)]
     private int $id;
 
     public function getId(): int
