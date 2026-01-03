@@ -1,0 +1,17 @@
+<?php
+
+namespace {{ namespace }};
+
+use YouKernel\Component\Controller\AbstractController;
+use YouHttpFoundation\Request;
+use YouHttpFoundation\Response;
+use YouRoute\Attribute\Route;
+
+class {{ class }} extends AbstractController
+{
+    #[Route('{{ path }}', '{{ path_name }}')]
+    public function index(Request $request): Response
+    {
+        return $this->render('{{ template_name }}', ['message' => 'Welcome to {{ class }}', 'title' => '{{ class }}']);
+    }
+}

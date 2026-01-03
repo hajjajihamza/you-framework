@@ -1,0 +1,27 @@
+<?php
+
+namespace {{ namespace }};
+
+use YouOrm\Repository\AbstractRepository;
+use YouOrm\EntityManager;
+use {{ entity_namespace }}\{{ entity_class }};
+
+/**
+ * Repository pour l'entité {{ entity_class }}.
+ *
+ * @extends AbstractRepository
+ */
+class {{ class }} extends AbstractRepository
+{
+    /**
+     * Constructeur du repository.
+     *
+     * @param EntityManager $em L'instance de l'EntityManager
+     */
+    public function __construct(EntityManager $em)
+    {
+        parent::__construct($em, {{ entity_class }}::class);
+    }
+
+    // Ajoutez vos méthodes personnalisées ici
+}

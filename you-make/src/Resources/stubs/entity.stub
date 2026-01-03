@@ -1,0 +1,18 @@
+<?php
+
+namespace {{ namespace }};
+
+use YouOrm\Attribute\Table;
+use YouOrm\Attribute\Column;
+
+#[Table(name: '{{ table }}')]
+class {{ class }}
+{
+    #[Column(name: 'id', type: 'integer', primary: true, autoincrement: true)]
+    private int $id;
+
+    public function getId(): int
+    {
+        return $this->id;
+    }
+}

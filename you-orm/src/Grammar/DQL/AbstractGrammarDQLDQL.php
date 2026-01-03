@@ -1,12 +1,12 @@
 <?php
 
-namespace YouOrm\Query\Grammar;
+namespace YouOrm\Grammar\DQL;
 
 /**
  * Class AbstractGrammar
  * Logique de base partagée entre les différentes grammaires SQL.
  */
-abstract class AbstractGrammar implements GrammarInterface
+abstract class AbstractGrammarDQLDQL implements GrammarDQLInterface
 {
     /**
      * {@inheritDoc}
@@ -33,7 +33,7 @@ abstract class AbstractGrammar implements GrammarInterface
             'limit' => $this->compileLimit($limit, $offset),
         ];
 
-        return $this->concatenate($components);
+        return implode(' ', array_filter($components, static fn($val) => $val !== ""));
     }
 
     protected function compileColumns(array $columns): string
@@ -99,9 +99,4 @@ abstract class AbstractGrammar implements GrammarInterface
      * Chaque SGBD peut avoir sa propre façon de gérer LIMIT et OFFSET.
      */
     abstract protected function compileLimit(?int $limit, ?int $offset): string;
-
-    protected function concatenate(array $components): string
-    {
-        return implode(' ', array_filter($components, static fn($val) => $val !== ""));
-    }
 }

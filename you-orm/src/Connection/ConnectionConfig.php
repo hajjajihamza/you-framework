@@ -59,6 +59,15 @@ class ConnectionConfig
         return $this->dsn;
     }
 
+    /**
+     * Get the database driver from the DSN.
+     * @return string
+     */
+    public function getDriver(): string
+    {
+        return explode(':', $this->dsn)[0];
+    }
+
     public function getUsername(): ?string
     {
         return $this->username;
@@ -88,6 +97,6 @@ class ConnectionConfig
             PDO::ATTR_EMULATE_PREPARES => false, // Don't emulate prepared statements
         ];
 
-        return array_replace($defaults, $options);
+        return array_replace($options, $defaults);
     }
 }

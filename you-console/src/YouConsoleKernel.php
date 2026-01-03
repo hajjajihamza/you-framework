@@ -2,6 +2,7 @@
 
 namespace YouConsole;
 
+use YouConfig\Config;
 use YouConsole\Command\AbstractCommand;
 use YouConsole\Command\CommandCollection;
 use YouConsole\Command\CommandDiscovery;
@@ -17,14 +18,10 @@ class YouConsoleKernel
     /** @var Output Gestionnaire de sortie */
     private Output $output;
 
-    /** @var ?string Répertoire des commandes pour l'auto-discovery */
-    private ?string $commandsDirectory = null;
-
     public function __construct(private Container $container)
     {
         $this->output = new Output();
         $this->commandCollection = new CommandCollection();
-        $this->commandsDirectory ??= $container->get('project_dir') . '/src/Controller';
     }
 
     /**
@@ -33,7 +30,8 @@ class YouConsoleKernel
      * @param array<string>|null $argv Arguments de la ligne de commande (null = utiliser $_SERVER['argv'])
      * @return int Code de retour (0 = succès, autre = erreur)
      */
-    public function run(?array $argv = null): int {
+    public function run(?array $argv = null): int
+    {
 
         try {
             // Utiliser les arguments globaux si non fournis
@@ -90,8 +88,10 @@ class YouConsoleKernel
     private function autoDiscoverCommands(): void
     {
         $discovery = new CommandDiscovery($this->container);
-        $discoveredCommands = $discovery->discover($this->commandsDirectory);
 
+        $directory = $this->container->get('project_dir') . '/' . ltrim($this->container->get(Config::class)->get('app.commands.resource', '/src/Command'), '/');
+
+        $discoveredCommands = $discovery->discover($directory);
         $this->registerCommand(...$discoveredCommands);
     }
 
@@ -117,25 +117,4 @@ class YouConsoleKernel
         // Le premier argument est le nom du script, le second est la commande
         return $argv[1] ?? '';
     }
-
-    /**
-     * @return string
-     */
-    public function getCommandsDirectory(): string
-    {
-        return $this->commandsDirectory;
-    }
-
-    /**
-     * @param string $commandsDirectory
-     * @return YouConsoleKernel
-     */
-    public function setCommandsDirectory(string $commandsDirectory): self
-    {
-        $this->commandsDirectory = $commandsDirectory;
-
-        return $this;
-    }
-
-
 }

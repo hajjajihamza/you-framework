@@ -1,12 +1,12 @@
 <?php
 
-namespace YouOrm\Query\Grammar;
+namespace YouOrm\Grammar\DQL;
 
 /**
  * Interface GrammarInterface
  * Définit le contrat pour les grammaires SQL spécifiques aux SGBD.
  */
-interface GrammarInterface
+interface GrammarDQLInterface
 {
     /**
      * Compile une requête SELECT en SQL.

@@ -5,8 +5,7 @@ namespace YouOrm\Hydrator;
 use DateTimeInterface;
 use ReflectionClass;
 use ReflectionProperty;
-use YouOrm\Attribute\Column;
-use YouOrm\Attribute\PrimaryKey;
+use YouOrm\Schema\Attribute\Column;
 
 class ObjectHydrator
 {
@@ -87,9 +86,13 @@ class ObjectHydrator
     {
         $reflection = new ReflectionClass($class);
         foreach ($reflection->getProperties() as $property) {
-            $attributes = $property->getAttributes(PrimaryKey::class);
+            $attributes = $property->getAttributes(Column::class);
             if (!empty($attributes)) {
-                return $property->getName();
+                /** @var Column $attribute */
+                $attribute = $attributes[0]->newInstance();
+                if ($attribute->isPrimaryKey()) {
+                    return $property->getName();
+                }
             }
         }
         return null;

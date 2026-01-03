@@ -1,12 +1,12 @@
 <?php
 
-namespace YouOrm\Query\Grammar;
+namespace YouOrm\Grammar\DQL;
 
 /**
  * Class PostgreSqlGrammar
  * Grammaire SQL spécifique à PostgreSQL.
  */
-class PostgreSqlGrammar extends AbstractGrammar
+class PostgreSqlGrammarDQL extends AbstractGrammarDQLDQL
 {
     /**
      * Compile la clause LIMIT et OFFSET pour PostgreSQL.

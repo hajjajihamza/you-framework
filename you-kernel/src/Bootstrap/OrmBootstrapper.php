@@ -4,7 +4,6 @@ namespace YouKernel\Bootstrap;
 
 use YouConfig\Config;
 use YouKernel\Component\Container\Container;
-use YouOrm\Connection\ConnectionConfig;
 use YouOrm\Connection\ConnectionFactory;
 use YouOrm\Connection\DBConnection;
 use YouOrm\EntityManager;

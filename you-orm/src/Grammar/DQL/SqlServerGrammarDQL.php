@@ -1,12 +1,12 @@
 <?php
 
-namespace YouOrm\Query\Grammar;
+namespace YouOrm\Grammar\DQL;
 
 /**
  * Class SqlServerGrammar
  * Grammaire SQL spécifique à SQL Server.
  */
-class SqlServerGrammar extends AbstractGrammar
+class SqlServerGrammarDQL extends AbstractGrammarDQLDQL
 {
     /**
      * Compile la clause LIMIT et OFFSET pour SQL Server.

@@ -100,11 +100,11 @@ final class Application
     #[NoReturn]
     public function runConsole(array $argv): void
     {
-        // Initialisation du Kernel Console
-        $this->consoleKernel ??= new ConsoleBootstrapper()->boot($this->container);
-
         // Initialisation de l'ORM
         new OrmBootstrapper()->boot($this->container);
+
+        // Initialisation du Kernel Console
+        $this->consoleKernel ??= new ConsoleBootstrapper()->boot($this->container);
 
         // Lancement du Kernel
         new ConsoleRunner()->run($this->consoleKernel, $argv);

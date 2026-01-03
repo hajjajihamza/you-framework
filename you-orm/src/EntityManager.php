@@ -3,10 +3,10 @@
 namespace YouOrm;
 
 use ReflectionClass;
-use YouOrm\Attribute\Table;
 use YouOrm\Connection\DBConnection;
 use YouOrm\Hydrator\ObjectHydrator;
 use YouOrm\Query\QueryBuilder;
+use YouOrm\Schema\Attribute\Table;
 
 class EntityManager
 {
