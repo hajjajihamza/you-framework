@@ -45,6 +45,8 @@
                     <li class="nav-item"><a class="nav-link" href="you-console.html">YouConsole</a></li>
                     <li class="nav-item"><a class="nav-link" href="you-config.html">YouConfig</a></li>
                     <li class="nav-item"><a class="nav-link" href="you-kernel.html">YouKernel</a></li>
+                    <li class="nav-item"><a class="nav-link" href="you-orm.html">YouORM</a></li>
+                    <li class="nav-item"><a class="nav-link" href="you-make.html">YouMake</a></li>
                 </ul>
             </div>
         </div>
@@ -60,7 +62,8 @@
         <ul>
             <li><strong>Abstraction de la Requête</strong> : La classe <code>Request</code> encapsule
                 <code>$_GET</code>, <code>$_POST</code>, <code>$_COOKIE</code>, <code>$_FILES</code> et
-                <code>$_SERVER</code>.</li>
+                <code>$_SERVER</code>.
+            </li>
             <li><strong>Abstraction de la Réponse</strong> : La classe <code>Response</code> facilite la création de
                 réponses HTTP avec contenu, en-têtes et codes de statut.</li>
             <li><strong>Gestion des Paramètres</strong> : La classe <code>ParameterBag</code> offre une interface fluide
@@ -86,7 +89,8 @@ $request = Request::createFromGlobals();
 
         <h3>Accéder aux Données</h3>
         <p>La classe <code>Request</code> expose plusieurs propriétés publiques qui sont des instances de
-            <code>YouHttpFoundation\ParameterBag</code> :</p>
+            <code>YouHttpFoundation\ParameterBag</code> :
+        </p>
         <ul>
             <li><code>$request->query</code> : Correspond à <code>$_GET</code> (paramètres d'URL).</li>
             <li><code>$request->request</code> : Correspond à <code>$_POST</code> (paramètres de corps).</li>
@@ -113,10 +117,12 @@ if ($request->cookies->has('session_id')) {
             <li><code>getPath()</code> : Retourne le chemin de l'URI nettoyé (ex: <code>/blog/article</code>).</li>
             <li><code>getMethod()</code> : Retourne la méthode HTTP (ex: <code>GET</code>, <code>POST</code>).</li>
             <li><code>isMethod(string $method)</code> : Vérifie si la méthode correspond (ex:
-                <code>$request->isMethod('POST')</code>).</li>
+                <code>$request->isMethod('POST')</code>).
+            </li>
         </ul>
         <p>Note : <code>createFromGlobals()</code> gère automatiquement le décodage du JSON si le header
-            <code>Content-Type</code> est <code>application/json</code> pour les méthodes POST, PUT ou PATCH.</p>
+            <code>Content-Type</code> est <code>application/json</code> pour les méthodes POST, PUT ou PATCH.
+        </p>
 
         <h2>La Classe Response</h2>
         <p>La classe <code>YouHttpFoundation\Response</code> permet de construire la réponse à envoyer au client.</p>

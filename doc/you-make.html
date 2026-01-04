@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouMake - Documentation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <style>
+        body {
+            padding-top: 60px;
+        }
+
+        h2 {
+            margin-top: 2rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.5rem;
+        }
+
+        h3 {
+            margin-top: 1.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">YouFramework</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="you-route.html">YouRoute</a></li>
+                    <li class="nav-item"><a class="nav-link" href="you-http-foundation.html">YouHttpFoundation</a></li>
+                    <li class="nav-item"><a class="nav-link" href="you-console.html">YouConsole</a></li>
+                    <li class="nav-item"><a class="nav-link" href="you-config.html">YouConfig</a></li>
+                    <li class="nav-item"><a class="nav-link" href="you-kernel.html">YouKernel</a></li>
+                    <li class="nav-item"><a class="nav-link" href="you-orm.html">YouORM</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="you-make.html">YouMake</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h1 class="mb-4">Documentation de la Bibliothèque YouMake</h1>
+
+        <p class="lead"><strong>YouMake</strong> est un puissant générateur de code CLI pour YouFramework, permettant
+            d'accélérer le développement en créant des structures de fichiers standardisées.</p>
+
+        <h2>Commandes de Génération</h2>
+
+        <h3>Générer un Contrôleur</h3>
+        <p>Utilisez <code>make:controller</code> pour créer un nouveau contrôleur et son template Twig associé.</p>
+        <pre><code class="language-bash">php bin/console make:controller UserController</code></pre>
+        <ul>
+            <li><code>name</code> : Nom du contrôleur (ex: <code>UserController</code> ou
+                <code>Admin/DashboardController</code>).</li>
+            <li><code>--no-template</code> : Option pour générer uniquement le contrôleur sans le fichier Twig.</li>
+        </ul>
+
+        <h3>Générer une Entité ORM</h3>
+        <p>Utilisez <code>make:entity</code> pour créer une entité YouORM et son Repository.</p>
+        <pre><code class="language-bash">php bin/console make:entity Product</code></pre>
+        <ul>
+            <li><code>name</code> : Nom de l'entité.</li>
+            <li><code>--no-repository</code> : Option pour ne pas générer de classe Repository.</li>
+        </ul>
+
+        <h3>Générer une Migration</h3>
+        <p>Le système compare automatiquement vos entités PHP avec l'état actuel de votre base de données pour générer
+            le code SQL nécessaire (up/down).</p>
+        <pre><code class="language-bash">php bin/console make:migration</code></pre>
+
+        <h3>Générer une Commande Console</h3>
+        <p>Créez vos propres outils CLI personnalisés héritant de YouConsole.</p>
+        <pre><code class="language-bash">php bin/console make:command ExportDataCommand</code></pre>
+
+        <h2>Configuration des Chemins</h2>
+        <p>YouMake respecte les chemins configurés dans vos fichiers de configuration (<code>YouConfig</code>) :</p>
+        <ul>
+            <li><code>app.routes.resource</code> : Destination des contrôleurs.</li>
+            <li><code>app.twig.path</code> : Destination des templates Twig.</li>
+            <li><code>database.entities_path</code> : Destination des entités.</li>
+            <li><code>database.repositories_path</code> : Destination des repositories.</li>
+            <li><code>database.migrations_path</code> : Destination des fichiers de migration.</li>
+        </ul>
+
+        <footer class="mt-5 mb-3 text-center text-muted">
+            &copy; 2024 YouFramework
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-bash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-php.min.js"></script>
+</body>
+
+</html>

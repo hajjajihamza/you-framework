@@ -181,11 +181,21 @@ class MigrateCommand extends AbstractCommand
                 $migration->down();
                 $this->removeVersion($version);
             }
-            $this->connection->getConnection()->commit();
+
+            // MySQL ferme automatiquement les transactions sur les DDL
+            if ($this->connection->getConnection()->inTransaction()) {
+                $this->connection->getConnection()->commit();
+            }
+
             $output->success(sprintf('%s: %s', $direction === 'up' ? 'Migrated' : 'Rolled back', $version));
             return self::STATUS_SUCCESS;
         } catch (\Exception $e) {
-            $this->connection->getConnection()->rollBack();
+
+            // MySQL ferme automatiquement les transactions sur les DDL
+            if ($this->connection->getConnection()->inTransaction()) {
+                $this->connection->getConnection()->rollBack();
+            }
+
             $output->error(sprintf('Failed %s %s: %s', $direction === 'up' ? 'migrating' : 'rolling back', $version, $e->getMessage()));
             return self::STATUS_ERROR;
         }

@@ -80,7 +80,7 @@ if (!function_exists('discover_classes')) {
 
 
         foreach ($iterator as $file) {
-            if (!$file->isFile() || $file->getExtension() !== 'php') {
+            if (!$file->isFile() || $file->getExtension() === 'php') {
                 continue;
             }
 
@@ -100,10 +100,10 @@ if (!function_exists('discover_files')) {
      * Découvre tous les fichiers dans un répertoire et ses sous-répertoires.
      *
      * @param string $directory Le chemin absolu vers le répertoire.
-     * @param string|null $extension L'extension de fichier à filtrer (ex: 'php').
+     * @param string $extension L'extension de fichier à filtrer (ex: 'php').
      * @return array Un tableau contenant les chemins absolus des fichiers.
      */
-    function discover_files(string $directory, ?string $extension = null): array
+    function discover_files(string $directory, string $extension = 'php'): array
     {
         $files = [];
 
@@ -122,7 +122,7 @@ if (!function_exists('discover_files')) {
                 continue;
             }
 
-            if ($extension && $file->getExtension() !== $extension) {
+            if ($file->getExtension() !== $extension) {
                 continue;
             }
 

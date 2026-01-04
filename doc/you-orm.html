@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouORM - Documentation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <style>
+        body {
+            padding-top: 60px;
+        }
+
+        h2 {
+            margin-top: 2rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.5rem;
+        }
+
+        h3 {
+            margin-top: 1.5rem;
+        }
+
+        .code-block {
+            position: relative;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">YouFramework</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="you-route.html">YouRoute</a></li>
+                    <li class="nav-item"><a class="nav-link" href="you-http-foundation.html">YouHttpFoundation</a></li>
+                    <li class="nav-item"><a class="nav-link" href="you-console.html">YouConsole</a></li>
+                    <li class="nav-item"><a class="nav-link" href="you-config.html">YouConfig</a></li>
+                    <li class="nav-item"><a class="nav-link" href="you-kernel.html">YouKernel</a></li>
+                    <li class="nav-item active"><a class="nav-link active" href="you-orm.html">YouORM</a></li>
+                    <li class="nav-item"><a class="nav-link" href="you-make.html">YouMake</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h1 class="mb-4">Documentation de la Bibliothèque YouORM</h1>
+
+        <p class="lead"><strong>YouORM</strong> est un Object-Relational Mapper (ORM) puissant et léger pour PHP 8.1+,
+            utilisant les attributs pour la définition du schéma et offrant une API fluide pour les interactions avec la
+            base de données.</p>
+
+        <h2>Fonctionnalités Principales</h2>
+        <ul>
+            <li><strong>Mapping via Attributs</strong> : Définissez vos tables et colonnes directement dans vos classes
+                PHP.</li>
+            <li><strong>EntityManager</strong> : Gestionnaire centralisé pour le CRUD (Create, Read, Update, Delete).
+            </li>
+            <li><strong>QueryBuilder</strong> : Interface fluide pour construire des requêtes SQL complexes de manière
+                sécurisée.</li>
+            <li><strong>Hydratation automatique</strong> : Conversion automatique des résultats de base de données en
+                objets PHP.</li>
+            <li><strong>Système de Migrations</strong> : Gérez l'évolution de votre schéma de base de données de manière
+                versionnée.</li>
+            <li><strong>Support Multi-SGBD</strong> : MySQL, PostgreSQL, SQLite, et SQL Server.</li>
+        </ul>
+
+        <h2>Installation & Configuration</h2>
+        <p>YouORM nécessite une configuration de connexion via <code>DBConnection</code>.</p>
+
+        <pre><code class="language-php">use YouOrm\Connection\DBConnection;
+use YouOrm\EntityManager;
+
+$config = [
+    'driver' => 'mysql',
+    'host' => 'localhost',
+    'database' => 'my_app',
+    'username' => 'root',
+    'password' => 'secret',
+    'charset' => 'utf8mb4'
+];
+
+$connection = new DBConnection($config);
+$entityManager = new EntityManager($connection);
+</code></pre>
+
+        <h2>Définition des Entités</h2>
+        <p>Utilisez les attributs <code>#[Table]</code> et <code>#[Column]</code> pour mapper vos classes.</p>
+
+        <pre><code class="language-php">use YouOrm\Schema\Attribute\Table;
+use YouOrm\Schema\Attribute\Column;
+use YouOrm\Schema\Type\ColumnType;
+
+#[Table(name: 'users')]
+class User
+{
+    #[Column(type: ColumnType::INTEGER, primaryKey: true, autoIncrement: true)]
+    private ?int $id = null;
+
+    #[Column(type: ColumnType::STRING, length: 150)]
+    private string $username;
+
+    #[Column(type: ColumnType::STRING, unique: true)]
+    private string $email;
+
+    // Getters et Setters...
+}
+</code></pre>
+
+        <h2>Utilisation de l'EntityManager</h2>
+
+        <h3>Persister et Sauvegarder</h3>
+        <pre><code class="language-php">$user = new User();
+$user->setUsername('JeanDupont');
+$user->setEmail('jean@example.com');
+
+$entityManager->persist($user);
+$entityManager->flush(); // Exécute l'INSERT ou l'UPDATE
+</code></pre>
+
+        <h3>Récupérer une Entité</h3>
+        <pre><code class="language-php">$user = $entityManager->find(User::class, 1);
+echo $user->getUsername();
+</code></pre>
+
+        <h3>Supprimer une Entité</h3>
+        <pre><code class="language-php">$entityManager->remove($user);
+// La suppression est immédiate
+</code></pre>
+
+        <h2>QueryBuilder</h2>
+        <p>Pour des requêtes plus complexes, utilisez le <code>QueryBuilder</code>.</p>
+
+        <pre><code class="language-php">$qb = $entityManager->getQueryBuilder();
+
+$users = $qb->select('*')
+    ->from('users')
+    ->where('email LIKE :email')
+    ->setParameter('email', '%@gmail.com')
+    ->orderBy('username', 'ASC')
+    ->getResults();
+</code></pre>
+
+        <h2>Migrations</h2>
+        <p>YouORM permet de gérer votre schéma via des commandes CLI (via YouConsole).</p>
+        <ul>
+            <li><code>php bin/console orm:migrate</code> : Exécute les migrations en attente.</li>
+            <li><code>php bin/console make:migration</code> : Génère une nouvelle migration basée sur les changements
+                d'entités.</li>
+        </ul>
+
+        <footer class="mt-5 mb-3 text-center text-muted">
+            &copy; 2024 YouFramework
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-php.min.js"></script>
+</body>
+
+</html>
