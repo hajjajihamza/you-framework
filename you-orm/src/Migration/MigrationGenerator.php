@@ -2,7 +2,6 @@
 
 namespace YouOrm\Migration;
 
-use YouOrm\Discovery\EntityDiscovery;
 use YouOrm\Grammar\DDL\GrammarDDLInterface;
 use YouOrm\Schema\SchemaDiff;
 use YouOrm\Schema\TableDiff;
@@ -15,11 +14,9 @@ class MigrationGenerator
 {
     /**
      * @param GrammarDDLInterface $grammar
-     * @param EntityDiscovery $discovery
      */
     public function __construct(
-        protected GrammarDDLInterface $grammar,
-        protected EntityDiscovery $discovery
+        protected GrammarDDLInterface $grammar
     ) {
     }
 
