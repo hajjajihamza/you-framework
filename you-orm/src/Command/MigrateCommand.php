@@ -12,17 +12,18 @@ use YouOrm\Migration\AbstractMigration;
 
 class MigrateCommand extends AbstractCommand
 {
+    private DBConnection $connection;
+    private Config $config;
+
     /**
-     * @param DBConnection $connection
-     * @param Config $config
      * @param Container $container
      */
     public function __construct(
-        private readonly DBConnection $connection,
-        private readonly Config $config,
         private readonly Container $container
     ) {
         parent::__construct();
+        $this->connection = $container->get(DBConnection::class);
+        $this->config = $container->get(Config::class);
     }
 
     /**
