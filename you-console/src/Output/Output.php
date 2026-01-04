@@ -98,6 +98,17 @@ class Output
     }
 
     /**
+     * Affiche un avertissement.
+     *
+     * @param string $message Message à afficher
+     */
+    public function warning(string $message): void
+    {
+        $this->writeln('<warning>' . $message . '</warning>');
+    }
+
+
+    /**
      * Formate un message en remplaçant les tags par des codes ANSI.
      *
      * @param string $message Message à formater
@@ -112,6 +123,7 @@ class Output
             '/<comment>(.*?)<\/comment>/s',
             '/<question>(.*?)<\/question>/s',
             '/<success>(.*?)<\/success>/s',
+            '/<warning>(.*?)<\/warning>/s',
         ];
 
         $replacements = [
@@ -120,6 +132,7 @@ class Output
             static fn($matches) => OutputStyle::apply('comment', $matches[1]),
             static fn($matches) => OutputStyle::apply('question', $matches[1]),
             static fn($matches) => OutputStyle::apply('success', $matches[1]),
+            static fn($matches) => OutputStyle::apply('warning', $matches[1]),
         ];
 
         foreach ($patterns as $index => $pattern) {

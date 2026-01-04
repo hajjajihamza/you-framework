@@ -13,10 +13,11 @@ use YouOrm\Schema\Type\ColumnType;
  * Class MySqlIntrospector
  * MySQL implementation for database schema introspection.
  */
-class MySqlIntrospector implements DatabaseSchemaIntrospectorInterface
+readonly class MySqlIntrospector implements DatabaseSchemaIntrospectorInterface
 {
     public function __construct(
-        private DBConnection $connection
+        private DBConnection $connection,
+        private string $migrationsTableName = 'migrations',
     ) {
     }
 
@@ -27,6 +28,10 @@ class MySqlIntrospector implements DatabaseSchemaIntrospectorInterface
         $tables = [];
 
         while ($tableName = $stmt->fetchColumn()) {
+            if ($tableName === $this->migrationsTableName) {
+                continue;
+            }
+
             $table = $this->introspectTable($tableName);
             if ($table) {
                 $tables[] = $table;

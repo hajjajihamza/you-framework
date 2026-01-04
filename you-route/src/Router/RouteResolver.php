@@ -4,14 +4,10 @@ declare(strict_types=1);
 
 namespace YouRoute\Router;
 
-use FilesystemIterator;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
 use RuntimeException;
-use SplFileInfo;
 use YouHttpFoundation\ResponseInterface;
 use YouRoute\Attribute\Route;
 
@@ -44,7 +40,7 @@ readonly class RouteResolver
      */
     public function loadRoutesFromDirectory(string $resourceDir): void
     {
-        $controllers = $this->loadAllClassNames($resourceDir);
+        $controllers = discover_classes($resourceDir);
 
         $reflections = array_map(
             static fn(string $controller): ReflectionClass => new ReflectionClass($controller),
@@ -153,67 +149,5 @@ readonly class RouteResolver
         }
 
         return $attributes[0]->newInstance();
-    }
-
-    /**
-     * Scans a directory recursively to find all PHP class names.
-     *
-     * @param string $resourceDir
-     * @return string[] Array of fully qualified class names.
-     *
-     * @throws RuntimeException If resource directory is invalid.
-     */
-    private function loadAllClassNames(string $resourceDir): array
-    {
-        if (!is_dir($resourceDir)) {
-            throw new RuntimeException(sprintf("The directory '%s' does not exist.", $resourceDir));
-        }
-
-        $controllers = [];
-        $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($resourceDir, FilesystemIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::SELF_FIRST
-        );
-
-        /** @var SplFileInfo $file */
-        foreach ($iterator as $file) {
-            if (!$file->isFile() || $file->getExtension() !== 'php') {
-                continue;
-            }
-
-            $fqcn = $this->extractFullyQualifiedClassName($file->getPathname());
-            if ($fqcn !== null) {
-                $controllers[] = $fqcn;
-            }
-        }
-
-        return $controllers;
-    }
-
-    /**
-     * Extracts the fully qualified class name from a PHP file.
-     *
-     * @param string $filePath
-     * @return string|null The FQCN or null if not found.
-     */
-    private function extractFullyQualifiedClassName(string $filePath): ?string
-    {
-        $content = file_get_contents($filePath);
-        if ($content === false) {
-            return null;
-        }
-
-        // Match namespace
-        if (!preg_match('/^\s*namespace\s+([a-zA-Z0-9_\\\\]+)\s*;/m', $content, $namespaceMatches)) {
-            return null;
-        }
-
-        // Match class name (supports abstract, final, readonly)
-        // Improved regex to handle modifiers before 'class'
-        if (!preg_match('/^\s*(?:abstract\s+|final\s+|readonly\s+)*class\s+(\w+)/m', $content, $classMatches)) {
-            return null;
-        }
-
-        return $namespaceMatches[1] . '\\' . $classMatches[1];
     }
 }

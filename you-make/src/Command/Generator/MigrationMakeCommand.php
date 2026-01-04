@@ -14,7 +14,6 @@ use YouOrm\Grammar\DDL\ {
 };
 use YouConsole\Output\OutputStyle;
 use YouOrm\Connection\DBConnection;
-use YouOrm\Discovery\EntityDiscovery;
 use YouOrm\Migration\MigrationGenerator;
 use YouOrm\Schema\Entity\EntitySchemaReader;
 use YouOrm\Schema\Introspector\DatabaseSchemaIntrospectorInterface;
@@ -105,8 +104,6 @@ class MigrationMakeCommand extends AbstractGeneratorCommand
      */
     protected function getReplacements(string $className): array
     {
-        $replacements = parent::getReplacements($className);
-
         /**
          * @var Config $config
          */
@@ -114,9 +111,8 @@ class MigrationMakeCommand extends AbstractGeneratorCommand
 
         $driver = $config->get('database.driver', 'mysql');
 
-        // 1. Setup Discovery
-        $discovery = new EntityDiscovery();
-        $reader = new EntitySchemaReader($discovery);
+        // 1. Read Entities
+        $reader = new EntitySchemaReader();
 
         // 2. Read Schema from Entities
         $newSchema = $reader->read($this->getEntitiesPath());
@@ -137,7 +133,7 @@ class MigrationMakeCommand extends AbstractGeneratorCommand
          */
         $introspector = match ($driver) {
             'pgsql' => new PostgreSqlIntrospector($connection),
-            default =>  new MySqlIntrospector($connection),
+            default =>  new MySqlIntrospector($connection, $config->get('database.migrations_table', 'migrations')),
         };
 
         $oldSchema = $introspector->introspect();
@@ -159,11 +155,13 @@ class MigrationMakeCommand extends AbstractGeneratorCommand
             default => new MySqlGrammarDDL(),
         };
 
-        $generator = new MigrationGenerator($grammar, $discovery);
+        $generator = new MigrationGenerator($grammar);
 
         $migrationSql = $generator->generateDiff($diff);
 
-        $replacements['{{{ up }}'] = $migrationSql['up'];
+        // 6. Replace
+        $replacements['{{ class }}'] = $className;
+        $replacements['{{ up }}'] = $migrationSql['up'];
         $replacements['{{ down }}'] = $migrationSql['down'];
         return $replacements;
     }
@@ -176,6 +174,6 @@ class MigrationMakeCommand extends AbstractGeneratorCommand
      */
     protected function getClassName(string $name = 'Version'): string
     {
-        return sprintf('%s_%s_%s', $name, date('Y_m_d_His_'), random_int(100000, 999999));
+        return sprintf('%s_%s_%s', $name, date('Y_m_d_His'), random_int(100000, 999999));
     }
 }

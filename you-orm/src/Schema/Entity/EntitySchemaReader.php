@@ -3,7 +3,6 @@
 namespace YouOrm\Schema\Entity;
 
 use ReflectionClass;
-use YouOrm\Discovery\EntityDiscovery;
 use YouOrm\Schema\Attribute\Column;
 use YouOrm\Schema\Attribute\Table;
 use YouOrm\Schema\Schema;
@@ -14,11 +13,6 @@ use YouOrm\Schema\Schema;
  */
 readonly class EntitySchemaReader
 {
-    public function __construct(
-        private EntityDiscovery $discovery
-    ) {
-    }
-
     /**
      * Read schema from entities in the given directory.
      *
@@ -27,7 +21,7 @@ readonly class EntitySchemaReader
      */
     public function read(string $directory): Schema
     {
-        $entityClasses = $this->discovery->discover($directory);
+        $entityClasses = discover_classes($directory);
         $tables = [];
 
         foreach ($entityClasses as $className) {

@@ -49,6 +49,7 @@ class OutputStyle
         'comment' => ['fg' => self::COLOR_YELLOW],
         'question' => ['fg' => self::COLOR_BLACK, 'bg' => self::BG_CYAN],
         'success' => ['fg' => self::COLOR_GREEN, 'bold' => true],
+        'warning' => ['fg' => self::COLOR_YELLOW, 'bg' => self::BG_RED, 'bold' => true],
     ];
 
     /**

@@ -92,7 +92,7 @@ class YouConsoleKernel
     {
         $discovery = new CommandDiscovery($this->container);
 
-        $directory = $this->container->get('project_dir') . '/' . ltrim($this->container->get(Config::class)->get('app.commands.resource', '/src/Command'), '/');
+        $directory = $this->container->get('project_dir') . '/' . ltrim($this->container->get(Config::class)->get('app.commands.resource', '/src/Command'), DIRECTORY_SEPARATOR);
 
         $discoveredCommands = $discovery->discover($directory);
         $this->registerCommand(...$discoveredCommands);

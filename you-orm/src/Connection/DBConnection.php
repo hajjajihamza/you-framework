@@ -99,4 +99,15 @@ class DBConnection
     {
         $this->connection = null;
     }
+
+    /**
+     * Get the name of the PDO driver.
+     *
+     * @return string
+     */
+    public function getDriver(): string
+    {
+        return $this->getConnection()->getAttribute(PDO::ATTR_DRIVER_NAME);
+    }
+
 }

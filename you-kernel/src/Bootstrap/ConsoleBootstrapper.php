@@ -8,6 +8,7 @@ use YouConsole\Helper\ServeCommand;
 use YouConsole\YouConsoleKernel;
 use YouKernel\Component\Container\Container;
 use YouMake\Command\Generator\{ControllerMakeCommand, EntityMakeCommand, CommandMakeCommand, MigrationMakeCommand};
+use YouOrm\Command\MigrateCommand;
 
 
 /**
@@ -39,7 +40,8 @@ final class ConsoleBootstrapper
             new CommandMakeCommand($container),
             new ControllerMakeCommand($container),
             new EntityMakeCommand($container),
-            new MigrationMakeCommand($container)
+            new MigrationMakeCommand($container),
+            new MigrateCommand($container)
         );
 
         $container->set(YouConsoleKernel::class, $kernel);
