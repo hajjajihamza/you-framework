@@ -2,6 +2,8 @@
 
 namespace YouHttpFoundation;
 
+use YouValidator\ValidatorBuilder;
+
 /**
  * Request représente une requête HTTP.
  *
@@ -117,5 +119,19 @@ class Request
     public function isMethod(string $method): bool
     {
         return strtoupper($method) === $this->getMethod();
+    }
+
+    /**
+     * Summary of validator
+     * @param array<string, ValidatorBuilder> $rules
+     * @return bool
+     */
+    public function validator(array $rules): bool
+    {
+        $isValid = true;
+        foreach ($rules as $field => $rule) {
+            $isValid = $rule->getValidator()->validate($field, $this->request->get($field)) && $isValid;
+        }
+        return $isValid;
     }
 }

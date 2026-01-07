@@ -1,42 +1,64 @@
 <?php
 
 namespace YouValidator;
+
 /**
- * Validator class that holds validation rules and performs validation
+ * Classe responsable de la validation des données.
+ * Cette classe permet de définir des règles de validation et de vérifier les valeurs fournies.
  */
 class Validator
 {
-    private string $fieldName;
-    private mixed $value;
+    /**
+     * @var array Liste des règles de validation enregistrées.
+     */
     private array $rules = [];
-    private array $errors = [];
 
-    public function __construct(string $fieldName, $value)
-    {
-        $this->fieldName = $fieldName;
-        $this->value = $value;
-    }
-
+    /**
+     * Ajoute une règle de validation.
+     *
+     * @param callable $rule La fonction de rappel qui définit la logique de validation. Elle doit retourner true si valide.
+     * @param string $errorMessage Le message d'erreur à associer si la validation échoue.
+     * @return void
+     */
     public function addRule(callable $rule, string $errorMessage): void
     {
         $this->rules[] = ['rule' => $rule, 'message' => $errorMessage];
     }
 
-    public function validate(): bool
+    /**
+     * Valide une valeur donnée en fonction des règles définies.
+     *
+     * Si la validation échoue, les erreurs sont stockées dans la session et les anciennes entrées sont conservées.
+     *
+     * @param string $fieldName Le nom du champ à valider (utilisé pour les messages d'erreur et la session).
+     * @param mixed $value La valeur à valider.
+     * @return bool Retourne true si toutes les règles sont respectées, sinon false.
+     */
+    public function validate(string $fieldName, mixed $value): bool
     {
-        $this->errors = [];
+        // reset errors
+        $errors = [];
 
+        // validate the value
         foreach ($this->rules as $rule) {
-            if (!$rule['rule']($this->value)) {
-                $this->errors[] = str_replace(':field', $this->fieldName, $rule['message']);
+            if (!$rule['rule']($value)) {
+                $errors[] = str_replace(':field', $fieldName, $rule['message']);
             }
         }
 
-        return empty($this->errors);
-    }
+        // enregistrer les erreurs et les anciennes entrées
+        if (!empty($errors)) {
+            // merge the new errors with existing errors
+            $existingErrors = errors() ?: [];
+            $existingErrors[$fieldName] = $errors;
+            with_errors($existingErrors);
 
-    public function getErrors(): array
-    {
-        return $this->errors;
+            // save the old input
+            $oldInput = session('_flash')['_old_input'] ?? [];
+            $oldInput[$fieldName] = $value;
+            with_old($oldInput);
+        }
+
+        return empty($errors);
     }
 }
