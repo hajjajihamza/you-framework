@@ -9,9 +9,9 @@ class ValidatorBuilder
 {
     private Validator $validator;
 
-    public function __construct(string $fieldName, $value)
+    public function __construct()
     {
-        $this->validator = new Validator($fieldName, $value);
+        $this->validator = new Validator();
     }
 
     public function required(): self
