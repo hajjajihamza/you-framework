@@ -34,11 +34,10 @@ class ControllerResolver
      * Exécute le contrôleur associé à la route correspondante.
      *
      * @param array{route: Route, params: array} $match Le résultat du dispatching (route + params).
-     * @param Request $request La requête HTTP actuelle.
      * @return mixed Le retour du contrôleur (Response, string, array, etc.).
-     * @throws ReflectionException|RuntimeException
+     * @throws RuntimeException
      */
-    public function resolve(array $match, Request $request): mixed
+    public function resolve(array $match): mixed
     {
         $route = $match['route'];
         $routeParams = $match['params'];
@@ -66,60 +65,7 @@ class ControllerResolver
             throw new RuntimeException("La méthode '{$methodName}' n'existe pas dans le contrôleur '{$controllerClass}'.");
         }
 
-        // Résolution des arguments de la méthode via Reflection
-        $args = $this->resolveArguments($controllerClass, $methodName, $request, $routeParams);
-
-        // Appel de la méthode
-        return $controllerInstance->$methodName(...$args);
-    }
-
-    /**
-     * Résout les arguments à passer à la méthode du contrôleur.
-     *
-     * @param string $class Nom de la classe du contrôleur.
-     * @param string $method Nom de la méthode.
-     * @param Request $request La requête HTTP.
-     * @param array $routeParams Les paramètres extraits de la route.
-     * @return array La liste des arguments ordonnée.
-     * @throws ReflectionException
-     */
-    private function resolveArguments(string $class, string $method, Request $request, array $routeParams): array
-    {
-        $reflection = new ReflectionMethod($class, $method);
-        $parameters = $reflection->getParameters();
-        $args = [];
-
-        foreach ($parameters as $param) {
-            $paramName = $param->getName();
-            $paramType = $param->getType();
-
-            // Injection les paramètres typés et non built-in (string, int, bool, etc.)
-            if ($paramType instanceof \ReflectionNamedType && !$paramType->isBuiltin()) {
-                // Injection de la Request si typée
-                if ($paramType->getName() === Request::class) {
-                    $args[] = $request;
-                    continue;
-                }
-
-                // Injection other dependencies
-                if ($this->container->has($paramType->getName())) {
-                    $args[] = $this->container->get($paramType->getName());
-                    continue;
-                }
-            }
-
-            // Injection des paramètres de route (ex: {id})
-            if (array_key_exists($paramName, $routeParams)) {
-                $args[] = $routeParams[$paramName];
-                continue;
-            }
-
-            // Valeur par défaut si disponible
-            if ($param->isDefaultValueAvailable()) {
-                $args[] = $param->getDefaultValue();
-            }
-        }
-
-        return $args;
+        // Execute action with dependency injection and route parameters
+        return $this->container->call([$controllerInstance, $methodName], $routeParams);
     }
 }

@@ -3,6 +3,7 @@
 namespace YouKernel\Bootstrap;
 
 use YouConfig\Config;
+use YouHttpFoundation\Request;
 use YouKernel\Component\Container\Container;
 use YouKernel\Component\Controller\ControllerResolver;
 use YouKernel\Component\Http\HttpKernel;
@@ -39,11 +40,13 @@ final class HttpBootstrapper
 
         $router = new YouRouteKernal($controllersPath);
         $resolver = new ControllerResolver($container);
+        $request = Request::createFromGlobals();
 
-        $kernel = new HttpKernel($router, $resolver);
+        $kernel = new HttpKernel($router, $resolver, $request);
 
         $container->set(HttpKernel::class, $kernel);
         $container->set(YouRouteKernal::class, $router);
+        $container->set(Request::class, $request);
 
         return $kernel;
     }

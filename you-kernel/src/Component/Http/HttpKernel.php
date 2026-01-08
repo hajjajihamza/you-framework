@@ -32,30 +32,36 @@ class HttpKernel
     private ControllerResolver $resolver;
 
     /**
+     * @var Request La requête HTTP.
+     */
+    private Request $request;
+
+    /**
      * Constructeur.
      *
      * @param YouRouteKernal     $router
      * @param ControllerResolver $resolver
+     * @param Request $request
      */
-    public function __construct(YouRouteKernal $router, ControllerResolver $resolver)
+    public function __construct(YouRouteKernal $router, ControllerResolver $resolver, Request $request)
     {
         $this->router = $router;
         $this->resolver = $resolver;
+        $this->request = $request;
     }
 
     /**
      * Traite la requête HTTP et retourne une réponse.
      *
-     * @param Request $request
      * @return Response
      */
-    public function handle(Request $request): Response
+    public function handle(): Response
     {
         try {
             // 1. Routing
             // On récupère la méthode et l'URI (path info) depuis la Request
-            $method = $request->getMethod();
-            $path = $request->getPath();
+            $method = $this->request->getMethod();
+            $path = $this->request->getPath();
 
             $match = $this->router->dispatch($method, $path);
 
@@ -66,7 +72,7 @@ class HttpKernel
 
             // 2. Exécution du contrôleur via le Resolver
             // Le resolver injecte la Request et les paramètres de route
-            $result = $this->resolver->resolve($match, $request);
+            $result = $this->resolver->resolve($match);
 
             // 3. Conversion du résultat en objet Response
             return $this->transformToResponse($result);

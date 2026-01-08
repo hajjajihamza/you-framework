@@ -61,12 +61,6 @@ readonly class RouteResolver
     {
         // Check if class is instantiable
         if (!$reflection->isInstantiable()) {
-            // Only throw if it seemingly attempts to define routes or is expected to be a controller?
-            // Existing logic: throws if NOT instantiable.
-            // Note: Abstract classes might simply be ignored in many frameworks, but following original requirement to throw.
-            // However, iterating ALL files in a dir might hit abstract parents.
-            // PROPOSAL: Only throw if it HAS a Route attribute but is abstract?
-            // For now, adhering to strict original logic but refining message.
             throw new ReflectionException(sprintf(
                 "The class %s is abstract or not instantiable and cannot be used as a route controller.",
                 $reflection->getName()
@@ -77,7 +71,7 @@ readonly class RouteResolver
         $routeController = $this->getAttributeInstance($reflection);
 
         // Process methods
-        foreach ($reflection->getMethods() as $method) {
+        foreach ($reflection->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
             /** @var ?Route $routeMethod */
             $routeMethod = $this->getAttributeInstance($method);
 
@@ -107,15 +101,6 @@ readonly class RouteResolver
     ): void {
         // Set action [Controller::class, method]
         $methodRoute->setAction([$class->getName(), $method->getName()]);
-
-        // Validate Validation: Method must be public
-        if (!$method->isPublic()) {
-            throw new ReflectionException(sprintf(
-                "The method %s::%s must be public to be used as a route action.",
-                $class->getName(),
-                $method->getName()
-            ));
-        }
 
         // Validate Return Type: Must implement ResponseInterface
         // Note: Using resolving getName() on return type.

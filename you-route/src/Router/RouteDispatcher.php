@@ -42,11 +42,10 @@ readonly class RouteDispatcher
         $routes = $this->routeCollection->all()[$method] ?? [];
 
         foreach ($routes as $route) {
-            // Vérifie la correspondance du chemin
-            $params = $this->matchPath($route->getPath(), $url);
+            if (preg_match($route->getRegex(), $url, $matches)) {
+                // On extrait les paramètres nommés
+                $params = array_filter($matches, 'is_string', ARRAY_FILTER_USE_KEY);
 
-            // Si params est un tableau, c'est que ça matche
-            if (is_array($params)) {
                 return [
                     'route' => $route,
                     'params' => $params
@@ -55,39 +54,5 @@ readonly class RouteDispatcher
         }
 
         return null;
-    }
-
-    /**
-     * Compare un motif de route à une URL réelle et extrait les paramètres.
-     *
-     * @param string $pattern Motif de la route (ex: '/users/{id}')
-     * @param string $url     URL réelle (ex: '/users/42/')
-     * @return bool|array     Retourne les paramètres extraits (array) si correspondance, sinon false.
-     */
-    private function matchPath(string $pattern, string $url): bool|array
-    {
-        $patternSegments = explode('/', $pattern);
-        $urlSegments = explode('/', $url);
-
-        // Vérifie le nombre de segments
-        if (count($patternSegments) !== count($urlSegments)) {
-            return false;
-        }
-
-        $params = [];
-
-        // Compare chaque segment
-        foreach ($patternSegments as $index => $patternSegment) {
-            // Vérifie si le segment est un paramètre dynamique (ex: {id})
-            if (preg_match('/^\{(\w+)\}$/', $patternSegment, $match)) {
-                // Extrait le nom du paramètre et sa valeur
-                $params[$match[1]] = $urlSegments[$index];
-            } elseif ($patternSegment !== $urlSegments[$index]) {
-                // Correspondance exacte échouée pour ce segment
-                return false;
-            }
-        }
-
-        return $params;
     }
 }

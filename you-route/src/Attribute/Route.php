@@ -55,6 +55,19 @@ final class Route
     }
 
     /**
+     * Retourne le pattern regex correspondant au chemin.
+     * Remplace {param} par ([^/]+).
+     *
+     * @return string
+     */
+    public function getRegex(): string
+    {
+        $path = $this->getPath();
+        $regex = preg_replace('/\{([a-zA-Z0-9_]+)\}/', '(?P<$1>[^/]+)', $path);
+        return '#^' . $regex . '$#';
+    }
+
+    /**
      * Récupère le nom de la route.
      *
      * @return string

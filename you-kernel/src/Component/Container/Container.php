@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace YouKernel\Component\Container;
 
+use Closure;
 use ReflectionClass;
-use ReflectionException;
+use ReflectionMethod;
 use ReflectionNamedType;
 use RuntimeException;
 
@@ -19,20 +20,20 @@ use RuntimeException;
 class Container
 {
     /**
-     * @var array<string, mixed> Stockage des instances de services.
+     * @var array<string, mixed> Service instances storage.
      */
     private array $instances = [];
 
     /**
-     * @var array<string, mixed> Stockage des définitions (factories ou classes).
+     * @var array<string, mixed> Definitions (factories or classes) storage.
      */
     private array $definitions = [];
 
     /**
-     * Enregistre un service ou une valeur.
+     * Set a service or value.
      *
-     * @param string $id       L'identifiant du service (souvent le nom de la classe).
-     * @param mixed  $concrete L'instance, la closure factory, ou le nom de la classe.
+     * @param string $id       The service identifier (usually the class name).
+     * @param mixed  $concrete The instance, factory closure, or class name.
      */
     public function set(string $id, mixed $concrete): void
     {
@@ -40,10 +41,18 @@ class Container
     }
 
     /**
-     * Vérifie si un service est défini ou instancié.
+     * Register an alias for a service.
      *
      * @param string $id
-     * @return bool
+     * @param string $alias
+     */
+    public function alias(string $id, string $alias): void
+    {
+        $this->definitions[$alias] = $id;
+    }
+
+    /**
+     * Check if a service is defined or instantiated.
      */
     public function has(string $id): bool
     {
@@ -51,34 +60,39 @@ class Container
     }
 
     /**
-     * Résout et retourne un service.
-     *
-     * @param string $id L'identifiant du service.
-     * @return mixed L'instance du service.
-     * @throws RuntimeException|ReflectionException
+     * Resolve and return a service.
      */
     public function get(string $id): mixed
     {
-        // 1. Si déjà instancié (Singleton par défaut), on retourne
+        // 1. If already instantiated, return it.
         if (isset($this->instances[$id])) {
             return $this->instances[$id];
         }
 
-        // 2. Si une définition existe
+        // 2. If a definition exists
         if (isset($this->definitions[$id])) {
             $concrete = $this->definitions[$id];
 
-            // Si c'est une closure, on l'exécute pour obtenir l'instance
-            if ($concrete instanceof \Closure) {
-                $this->instances[$id] = $concrete($this);
-            } else {
-                $this->instances[$id] = $concrete;
+            // If it's an alias (string pointing to another class/service)
+            if (is_string($concrete) && $concrete !== $id && ($this->has($concrete) || class_exists($concrete))) {
+                return $this->get($concrete);
             }
 
-            return $this->instances[$id];
+            // If it's a closure, execute it
+            if ($concrete instanceof Closure) {
+                $instance = $concrete($this);
+                $this->instances[$id] = $instance;
+                return $instance;
+            }
+
+            // If it's already an object, cache and return
+            if (is_object($concrete)) {
+                $this->instances[$id] = $concrete;
+                return $concrete;
+            }
         }
 
-        // 3. Tentative d'auto-wiring si c'est une classe valide
+        // 3. Auto-wiring attempt if it's a valid class
         if (class_exists($id)) {
             $instance = $this->resolve($id);
             $this->instances[$id] = $instance;
@@ -89,11 +103,7 @@ class Container
     }
 
     /**
-     * Résout une classe et ses dépendances via Reflection.
-     *
-     * @param string $class
-     * @return object
-     * @throws ReflectionException
+     * Resolve a class and its dependencies via Reflection.
      */
     private function resolve(string $class): object
     {
@@ -105,33 +115,71 @@ class Container
 
         $constructor = $reflection->getConstructor();
 
-        // Si pas de constructeur, on instancie directement
+        // If no constructor, instantiate directly
         if ($constructor === null) {
             return new $class();
         }
 
-        $parameters = $constructor->getParameters();
+        $dependencies = $this->resolveDependencies($constructor->getParameters(), $class);
+
+        return $reflection->newInstanceArgs($dependencies);
+    }
+
+    /**
+     * Call a method or closure while automatically injecting its arguments.
+     *
+     * @param callable $callable
+     * @param array $args Manual arguments to override or supplement injection.
+     * @return mixed
+     */
+    public function call(callable $callable, array $args = []): mixed
+    {
+        if (is_array($callable)) {
+            $reflection = new ReflectionMethod($callable[0], $callable[1]);
+        } else {
+            $reflection = new \ReflectionFunction($callable(...));
+        }
+
+        $dependencies = $this->resolveDependencies($reflection->getParameters(), 'callable', $args);
+
+        return call_user_func_array($callable, $dependencies);
+    }
+
+    /**
+     * Resolve an array of reflection parameters.
+     */
+    private function resolveDependencies(array $parameters, string $context, array $args = []): array
+    {
         $dependencies = [];
 
         foreach ($parameters as $param) {
+            $name = $param->getName();
+
+            // Override with manual arguments if provided
+            if (array_key_exists($name, $args)) {
+                $dependencies[] = $args[$name];
+                continue;
+            }
+
             $type = $param->getType();
 
-            // On ne gère que les types nommés (classes/interfaces) pour l'instant
             if (!$type instanceof ReflectionNamedType || $type->isBuiltin()) {
-                // Si une valeur par défaut existe, on l'utilise
                 if ($param->isDefaultValueAvailable()) {
                     $dependencies[] = $param->getDefaultValue();
                     continue;
                 }
 
-                throw new RuntimeException("Cannot resolve primitive parameter '{$param->getName()}' in class '$class'.");
+                if ($param->allowsNull()) {
+                    $dependencies[] = null;
+                    continue;
+                }
+
+                throw new RuntimeException("Cannot resolve parameter '$name' in '$context'.");
             }
 
-            // Récursion pour résoudre la dépendance
-            $dependencyClass = $type->getName();
-            $dependencies[] = $this->get($dependencyClass); // Réutilise get() pour bénéficier du cache singleton
+            $dependencies[] = $this->get($type->getName());
         }
 
-        return $reflection->newInstanceArgs($dependencies);
+        return $dependencies;
     }
 }

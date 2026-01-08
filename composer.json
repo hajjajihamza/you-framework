@@ -25,10 +25,16 @@
             "YouKernel\\": "you-kernel/src/",
             "YouConfig\\": "you-config/src/",
             "YouOrm\\": "you-orm/src/",
-            "YouMake\\": "you-make/src/"
+            "YouMake\\": "you-make/src/",
+            "YouValidator\\": "you-validator/src/"
         },
         "files": [
-            "helper/functions.php"
+            "functions/env.php",
+            "functions/filesystem.php",
+            "functions/http.php",
+            "functions/path.php",
+            "functions/flash.php",
+            "functions/session.php"
         ]
     },
     "minimum-stability": "stable",

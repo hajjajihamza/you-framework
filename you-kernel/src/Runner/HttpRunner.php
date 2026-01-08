@@ -28,8 +28,7 @@ final class HttpRunner
     #[NoReturn]
     public function run(HttpKernel $kernel): void
     {
-        $request = Request::createFromGlobals();
-        $response = $kernel->handle($request);
+        $response = $kernel->handle();
         $response->send();
     }
 }
