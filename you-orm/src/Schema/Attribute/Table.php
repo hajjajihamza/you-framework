@@ -3,6 +3,7 @@
 namespace YouOrm\Schema\Attribute;
 
 use Attribute;
+use YouOrm\Schema\ForeignKey;
 
 /**
  * Attribut permettant de définir la table de base de données associée à une entité.
@@ -20,6 +21,9 @@ class Table
     /** @var Index[] */
     private array $indexes = [];
 
+    /** @var ForeignKey[] */
+    private array $foreignKeys = [];
+
     /**
      * Constructeur de l'attribut Table.
      *
@@ -27,8 +31,7 @@ class Table
      */
     public function __construct(
         private string $name,
-    )
-    {
+    ) {
     }
 
     /**
@@ -113,5 +116,18 @@ class Table
     public function getIndexes(): array
     {
         return $this->indexes;
+    }
+
+    public function addForeignKey(ForeignKey $foreignKey): void
+    {
+        $this->foreignKeys[] = $foreignKey;
+    }
+
+    /**
+     * @return ForeignKey[]
+     */
+    public function getForeignKeys(): array
+    {
+        return $this->foreignKeys;
     }
 }

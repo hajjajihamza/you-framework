@@ -3,6 +3,7 @@
 namespace YouOrm\Grammar\DDL;
 
 use YouOrm\Schema\Attribute\Column;
+use YouOrm\Schema\ForeignKey;
 use YouOrm\Schema\Type\ColumnType;
 
 /**
@@ -19,18 +20,22 @@ abstract class AbstractGrammarDDL implements GrammarDDLInterface
     /**
      * {@inheritDoc}
      */
-    public function compileCreateTable(string $table, array $columns): string
+    public function compileCreateTable(string $table, array $columns, array $foreignKeys = []): string
     {
-        $columnDefinitions = [];
+        $definitions = [];
 
         foreach ($columns as $column) {
-            $columnDefinitions[] = $this->compileColumn($column);
+            $definitions[] = $this->compileColumn($column);
+        }
+
+        foreach ($foreignKeys as $foreignKey) {
+            $definitions[] = $this->compileForeignKey($foreignKey);
         }
 
         return sprintf(
             'CREATE TABLE %s (%s)',
             $this->wrap($table),
-            implode(', ', $columnDefinitions)
+            implode(', ', $definitions)
         );
     }
 
@@ -186,5 +191,49 @@ abstract class AbstractGrammarDDL implements GrammarDDLInterface
         }
 
         return sprintf('%s%s%s', $this->wrapper, $value, $this->wrapper);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function compileForeignKey(ForeignKey $foreignKey): string
+    {
+        $sql = sprintf(
+            'CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s (%s)',
+            $this->wrap($foreignKey->name),
+            $this->wrap($foreignKey->localColumn),
+            $this->wrap($foreignKey->foreignTable),
+            $this->wrap($foreignKey->foreignColumn)
+        );
+
+        if ($foreignKey->onDelete) {
+            $sql .= ' ON DELETE ' . strtoupper($foreignKey->onDelete);
+        }
+
+        return $sql;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function compileAddForeignKey(string $table, ForeignKey $foreignKey): string
+    {
+        return sprintf(
+            'ALTER TABLE %s ADD %s',
+            $this->wrap($table),
+            $this->compileForeignKey($foreignKey)
+        );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function compileDropForeignKey(string $table, string $foreignKeyName): string
+    {
+        return sprintf(
+            'ALTER TABLE %s DROP FOREIGN KEY %s',
+            $this->wrap($table),
+            $this->wrap($foreignKeyName)
+        );
     }
 }

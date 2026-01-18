@@ -3,6 +3,7 @@
 namespace YouOrm\Grammar\DDL;
 
 use YouOrm\Schema\Attribute\Column;
+use YouOrm\Schema\ForeignKey;
 
 /**
  * Interface GrammarDDLInterface
@@ -15,9 +16,10 @@ interface GrammarDDLInterface
      *
      * @param string $table Le nom de la table.
      * @param Column[] $columns Les colonnes (tableau associatif de configurations).
+     * @param ForeignKey[] $foreignKeys Les clés étrangères.
      * @return string
      */
-    public function compileCreateTable(string $table, array $columns): string;
+    public function compileCreateTable(string $table, array $columns, array $foreignKeys = []): string;
 
     /**
      * Compile une instruction DROP TABLE.
@@ -62,4 +64,30 @@ interface GrammarDDLInterface
      * @return string
      */
     public function wrap(string $value): string;
+
+    /**
+     * Compile une contrainte de clé étrangère.
+     *
+     * @param ForeignKey $foreignKey
+     * @return string
+     */
+    public function compileForeignKey(ForeignKey $foreignKey): string;
+
+    /**
+     * Compile l'ajout d'une clé étrangère via ALTER TABLE.
+     *
+     * @param string $table
+     * @param ForeignKey $foreignKey
+     * @return string
+     */
+    public function compileAddForeignKey(string $table, ForeignKey $foreignKey): string;
+
+    /**
+     * Compile la suppression d'une clé étrangère via ALTER TABLE.
+     *
+     * @param string $table
+     * @param string $foreignKeyName
+     * @return string
+     */
+    public function compileDropForeignKey(string $table, string $foreignKeyName): string;
 }

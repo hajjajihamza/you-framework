@@ -33,7 +33,7 @@ class MigrationGenerator
 
         // 1. New Tables
         foreach ($diff->newTables as $table) {
-            $up[] = $this->grammar->compileCreateTable($table->getName(), $table->getColumns()) . ';';
+            $up[] = $this->grammar->compileCreateTable($table->getName(), $table->getColumns(), $table->getForeignKeys()) . ';';
             $down[] = $this->grammar->compileDropTable($table->getName()) . ';';
         }
 
@@ -74,6 +74,18 @@ class MigrationGenerator
         foreach ($tableDiff->removedColumns as $column) {
             $up[] = $this->grammar->compileDropColumn($tableName, $column->getName()) . ';';
             $down[] = $this->grammar->compileAddColumn($tableName, $column) . ';';
+        }
+
+        // Added Foreign Keys
+        foreach ($tableDiff->addedForeignKeys as $fk) {
+            $up[] = $this->grammar->compileAddForeignKey($tableName, $fk) . ';';
+            $down[] = $this->grammar->compileDropForeignKey($tableName, $fk->name) . ';';
+        }
+
+        // Removed Foreign Keys
+        foreach ($tableDiff->removedForeignKeys as $fk) {
+            $up[] = $this->grammar->compileDropForeignKey($tableName, $fk->name) . ';';
+            $down[] = $this->grammar->compileAddForeignKey($tableName, $fk) . ';';
         }
     }
 

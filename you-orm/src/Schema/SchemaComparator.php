@@ -66,6 +66,34 @@ class SchemaComparator
             }
         }
 
+        // Check for new foreign keys
+        foreach ($newTable->getForeignKeys() as $newFk) {
+            $found = false;
+            foreach ($oldTable->getForeignKeys() as $oldFk) {
+                if ($oldFk->name === $newFk->name) {
+                    $found = true;
+                    break;
+                }
+            }
+            if (!$found) {
+                $diff->addedForeignKeys[] = $newFk;
+            }
+        }
+
+        // Check for removed foreign keys
+        foreach ($oldTable->getForeignKeys() as $oldFk) {
+            $found = false;
+            foreach ($newTable->getForeignKeys() as $newFk) {
+                if ($newFk->name === $oldFk->name) {
+                    $found = true;
+                    break;
+                }
+            }
+            if (!$found) {
+                $diff->removedForeignKeys[] = $oldFk;
+            }
+        }
+
         return $diff;
     }
 }

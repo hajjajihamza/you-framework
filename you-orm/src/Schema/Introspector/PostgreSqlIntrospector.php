@@ -6,6 +6,7 @@ use PDO;
 use YouOrm\Connection\DBConnection;
 use YouOrm\Schema\Attribute\Column;
 use YouOrm\Schema\Attribute\Table;
+use YouOrm\Schema\ForeignKey;
 use YouOrm\Schema\Schema;
 use YouOrm\Schema\Type\ColumnType;
 
@@ -107,7 +108,57 @@ class PostgreSqlIntrospector implements DatabaseSchemaIntrospectorInterface
             $columns[] = $this->mapColumn($rawColumn, $primaryKeys, $uniqueKeys);
         }
 
-        return new Table($tableName)->setColumns($columns);
+        $table = new Table($tableName);
+        $table->setColumns($columns);
+
+        $foreignKeys = $this->introspectForeignKeys($tableName);
+        foreach ($foreignKeys as $fk) {
+            $table->addForeignKey($fk);
+        }
+
+        return $table;
+    }
+
+    private function introspectForeignKeys(string $tableName): array
+    {
+        $pdo = $this->connection->getConnection();
+
+        $sql = "SELECT
+                    tc.constraint_name, 
+                    kcu.column_name, 
+                    ccu.table_name AS foreign_table_name,
+                    ccu.column_name AS foreign_column_name 
+                FROM 
+                    information_schema.table_constraints AS tc 
+                    JOIN information_schema.key_column_usage AS kcu
+                      ON tc.constraint_name = kcu.constraint_name
+                      AND tc.table_schema = kcu.table_schema
+                    JOIN information_schema.constraint_column_usage AS ccu
+                      ON ccu.constraint_name = tc.constraint_name
+                      AND ccu.table_schema = tc.table_schema
+                WHERE tc.constraint_type = 'FOREIGN KEY' 
+                  AND tc.table_name = :table
+                  AND tc.table_schema = :schema";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([
+            'table' => $tableName,
+            'schema' => $this->schema
+        ]);
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $fks = [];
+
+        foreach ($rows as $row) {
+            $fks[] = new ForeignKey(
+                name: $row['constraint_name'],
+                localColumn: $row['column_name'],
+                foreignTable: $row['foreign_table_name'],
+                foreignColumn: $row['foreign_column_name']
+            );
+        }
+
+        return $fks;
     }
 
     private function mapColumn(array $raw, array $primaryKeys, array $uniqueKeys): Column

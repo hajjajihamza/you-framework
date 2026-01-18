@@ -41,6 +41,12 @@ class TableDiff
     /** @var ColumnDiff[] */
     public array $changedColumns = [];
 
+    /** @var ForeignKey[] */
+    public array $addedForeignKeys = [];
+
+    /** @var ForeignKey[] */
+    public array $removedForeignKeys = [];
+
     public function __construct(
         public string $tableName
     ) {
@@ -48,7 +54,8 @@ class TableDiff
 
     public function hasChanges(): bool
     {
-        return !empty($this->addedColumns) || !empty($this->removedColumns) || !empty($this->changedColumns);
+        return !empty($this->addedColumns) || !empty($this->removedColumns) || !empty($this->changedColumns)
+            || !empty($this->addedForeignKeys) || !empty($this->removedForeignKeys);
     }
 }
 

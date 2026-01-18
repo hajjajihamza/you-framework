@@ -6,6 +6,7 @@ use PDO;
 use YouOrm\Connection\DBConnection;
 use YouOrm\Schema\Attribute\Column;
 use YouOrm\Schema\Attribute\Table;
+use YouOrm\Schema\ForeignKey;
 use YouOrm\Schema\Schema;
 use YouOrm\Schema\Type\ColumnType;
 
@@ -58,7 +59,53 @@ readonly class MySqlIntrospector implements DatabaseSchemaIntrospectorInterface
             $columns[] = $this->mapColumn($rawColumn);
         }
 
-        return new Table($tableName)->setColumns($columns);
+        $table = new Table($tableName);
+        $table->setColumns($columns);
+
+        $foreignKeys = $this->introspectForeignKeys($tableName);
+        foreach ($foreignKeys as $fk) {
+            $table->addForeignKey($fk);
+        }
+
+        return $table;
+    }
+
+    private function introspectForeignKeys(string $tableName): array
+    {
+        $pdo = $this->connection->getConnection();
+        $databaseName = $pdo->query("SELECT DATABASE()")->fetchColumn();
+
+        $sql = "SELECT 
+                    CONSTRAINT_NAME, 
+                    COLUMN_NAME, 
+                    REFERENCED_TABLE_NAME, 
+                    REFERENCED_COLUMN_NAME
+                FROM 
+                    information_schema.KEY_COLUMN_USAGE
+                WHERE 
+                    TABLE_NAME = :tableName 
+                    AND TABLE_SCHEMA = :database
+                    AND REFERENCED_TABLE_NAME IS NOT NULL";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([
+            'tableName' => $tableName,
+            'database' => $databaseName
+        ]);
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $fks = [];
+
+        foreach ($rows as $row) {
+            $fks[] = new ForeignKey(
+                name: $row['CONSTRAINT_NAME'],
+                localColumn: $row['COLUMN_NAME'],
+                foreignTable: $row['REFERENCED_TABLE_NAME'],
+                foreignColumn: $row['REFERENCED_COLUMN_NAME']
+            );
+        }
+
+        return $fks;
     }
 
     private function mapColumn(array $rawColumn): Column
@@ -92,7 +139,7 @@ readonly class MySqlIntrospector implements DatabaseSchemaIntrospectorInterface
             if (isset($matches[3])) {
                 $precision = (int) $matches[2];
                 $scale = (int) $matches[3];
-            } else if($typeBase === 'VARCHAR' || $typeBase === 'VARBINARY') {
+            } else if ($typeBase === 'VARCHAR' || $typeBase === 'VARBINARY') {
                 $length = (int) $matches[2];
             }
         }
@@ -113,7 +160,7 @@ readonly class MySqlIntrospector implements DatabaseSchemaIntrospectorInterface
             'DATETIME' => ColumnType::DATETIME,
             'TIMESTAMP' => ColumnType::DATETIME_TZ,
             'TIME' => ColumnType::TIME,
-            'LONGTEXT' => ColumnType::ARRAY,
+            'LONGTEXT' => ColumnType::ARRAY ,
             'JSON' => ColumnType::JSON,
             default => ColumnType::STRING,
         };
